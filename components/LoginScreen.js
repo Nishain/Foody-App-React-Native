@@ -25,19 +25,32 @@ export default function LoginScreen({ navigation }) {
             return
         }
         try{
-            const userCredentials = await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD))
+            await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD))
             setSnackbarMessage('successfully created an account')
         }catch(error){
             handleError(error)
         }
         // userCredentials.user.
     }
+    const requestForgetPassword = async ()=>{
+        const emailAddress = (get(EMAIL) || '')
+        if(emailAddress == ''){
+            setInputFields({...inputFields,'email':{error:'You should at least provide an email address'}})
+            return
+        }
+        try{
+            await auth().sendPasswordResetEmail(emailAddress)
+            setSnackbarMessage(`password reset link successfully sent to ${emailAddress}`)
+        }catch(error){
+            handleError(error)
+        }
+    }
     const get = (key) => inputFields[key].value
     const login = async () => {
         if (validate())
             return
         try {
-            const userCredentials = await auth().signInWithEmailAndPassword(get(EMAIL), get(PASSWORD))
+            await auth().signInWithEmailAndPassword(get(EMAIL), get(PASSWORD))
             setSnackbarMessage('login successful!')
         } catch (error) {
             handleError(error)
@@ -47,7 +60,6 @@ export default function LoginScreen({ navigation }) {
         if (!(error.code && error.code.startsWith('auth')))
             throw error //another sort of error thrown
         var message = ''
-        console.log(error.code)
         switch (error.code) {
             case 'auth/invalid-email':
                 message = 'Please enter a valid email'
@@ -68,6 +80,7 @@ export default function LoginScreen({ navigation }) {
                 message = 'Sorry already such user exists'    
                 break
             default:
+                console.log(error.code)
                 message = 'Sorry unknown error has occured'    
         }
         if(message.length > 0)
@@ -137,7 +150,7 @@ export default function LoginScreen({ navigation }) {
                 />}
                 <View style={styles.forgotPassword}>
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('ResetPasswordScreen')}
+                        onPress={requestForgetPassword}
                     >
                         <Text style={styles.forgot}>Forgot your password?</Text>
                     </TouchableOpacity>

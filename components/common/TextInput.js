@@ -5,12 +5,12 @@ import theme from './theme'
 
 export default function TextInput({ errorText, description, ...props }) {
     return (
-      <View style={styles.container}>
+      <View style={{...props.containerStyle,...styles.container}}>
         {description && !errorText ? (
           <Text style={styles.description}>{description}</Text>
         ) : null}
         <Input
-          style={styles.input}
+          style={{...styles.input,...props.inputStyle}}
           selectionColor={theme.colors.primary}
           underlineColor="transparent"
           mode="outlined"
@@ -23,12 +23,12 @@ export default function TextInput({ errorText, description, ...props }) {
   }
 const styles = StyleSheet.create({
     container: {
-      width: '100%',
+      // width: '100%',
       marginVertical: 12,
     },
-    // input: {
-    //   backgroundColor: theme.colors.surface,
-    // },
+    input: {
+      backgroundColor: '#fff',
+    },
     description: {
       fontSize: 13,
       color: theme.colors.secondary,

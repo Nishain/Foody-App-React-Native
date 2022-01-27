@@ -1,5 +1,5 @@
 import { DefaultTheme } from 'react-native-paper'
-export default theme = {
+const theme = {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
@@ -7,5 +7,13 @@ export default theme = {
       primary: '#560CCE',
       secondary: '#414757',
       error: '#f13a59',
-    }
+    },
+    headerStyle: {
+      alignSelf: 'center',
+      fontSize: 29,
+      color: '#560CCE',//primary color
+      fontWeight: 'bold',
+      paddingVertical: 12,
+  }
 }
+export default theme

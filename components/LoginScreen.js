@@ -5,8 +5,8 @@ import BackButton from './common/BackButton'
 import Background from './common/Background'
 import Logo from './common/logo'
 import TextInput from './common/TextInput'
-import theme from './common/theme'
 import auth from '@react-native-firebase/auth';
+import theme from './common/theme'
 
 const EMAIL = 'email', PASSWORD = 'password', CONFIRM_PASSWORD = 'confirmPassword'
 export default function LoginScreen({ navigation }) {

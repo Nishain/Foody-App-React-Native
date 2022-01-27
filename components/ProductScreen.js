@@ -19,7 +19,6 @@ export default function ProductScreen(){
         setFieldData({...fieldData,[key]:{'value':text}})
     }
     useEffect(()=>{
-        console.log('created')
     },[])
     
     return <View style={styles.container}>
@@ -64,7 +63,8 @@ const styles = StyleSheet.create({
     },
     searchbar : {
         alignSelf : 'center',
-        margin : 10
+        margin : 5,
+        borderRadius : 50
     },
     header: {
         alignSelf: 'center',

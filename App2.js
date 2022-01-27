@@ -1,21 +1,23 @@
-import { NavigationContainer } from '@react-navigation/native';
-import { Provider } from 'react-native-paper';
 import React from 'react'
-import theme from './components/common/theme';
+import { NavigationContainer } from '@react-navigation/native';
+import { Provider, Text } from 'react-native-paper';
+
+
 import LoginScreen from './components/LoginScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ProductScreen from './components/ProductScreen';
 import AwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import AdminScreen from './components/AdminScreen';
+import { View } from 'react-native';
+import {theme} from './components/common/theme';
 const Stack = createNativeStackNavigator()
 export default App = () => {
     return <Provider theme={theme} settings={{icon : props => <AwesomeIcon {...props} />}}>
     <NavigationContainer>
-        <Stack.Navigator initialRouteName="product" screenOptions={{
+        <Stack.Navigator initialRouteName="admin" screenOptions={{
             headerShown: false,
         }}>
             <Stack.Screen name="login" component={LoginScreen} />
-            <Stack.Screen name="product" component={AdminScreen} />
+            <Stack.Screen name="admin" component={AdminScreen} />
         </Stack.Navigator>
     </NavigationContainer>
     </Provider>

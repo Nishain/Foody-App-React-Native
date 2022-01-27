@@ -7,11 +7,12 @@ import Logo from './common/logo'
 import TextInput from './common/TextInput'
 import auth from '@react-native-firebase/auth';
 import theme from './common/theme'
+import CustomSnackBar from './common/CustomSnackBar'
 
 const EMAIL = 'email', PASSWORD = 'password', CONFIRM_PASSWORD = 'confirmPassword'
 export default function LoginScreen({ navigation }) {
     const [inputFields, setInputFields] = useState({ email: {}, password: {}, confirmPassword: {} })
-    const [snackbarMessage,setSnackbarMessage] = useState('')
+    const [snackbarMessage,setSnackbarMessage] = useState(null)
     const [authMode, setAuthMode] = useState('login')
     const signUp = async () => {
         if (validate())
@@ -166,11 +167,7 @@ export default function LoginScreen({ navigation }) {
 
                 </View>
             </View>
-            <Snackbar
-        visible={snackbarMessage.length > 0}
-        onDismiss={()=>{setSnackbarMessage('')}}>
-        {snackbarMessage}
-      </Snackbar>
+            <CustomSnackBar setMessage={setSnackbarMessage} message={snackbarMessage} />
         </Background>
     )
 

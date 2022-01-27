@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import database from '@react-native-firebase/database';
 import { StyleSheet, Text, View } from 'react-native';
-import { BottomNavigation, Searchbar } from 'react-native-paper';
+import { BottomNavigation, Button, Searchbar } from 'react-native-paper';
 import TextInput from './common/TextInput';
 
 import DropDownPicker from 'react-native-dropdown-picker';
@@ -25,6 +25,7 @@ export default function ProductScreen(){
         <Searchbar style={styles.searchbar} placeholder='Search' icon="search"/>
         <Text style={styles.header}>Add Food</Text>
         <TextInput 
+         description="Food Name"
          label="Food Name"
          returnKeyType="next"
          onChangeText={(text) => changeInputText(NAME, text)}
@@ -53,8 +54,8 @@ export default function ProductScreen(){
             searchable={true}
             items={get(CATEGORIES).map(category=>{return {value : category, label : category}})}
             />
-        <TextInput  label="Discount limit"/>
-        
+        <TextInput description="Discount limit" label="Discount limit"/>
+        <Button mode='contained'>Create</Button>
     </View>
 }
 const styles = StyleSheet.create({

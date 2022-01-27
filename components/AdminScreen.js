@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import Icon  from "react-native-vector-icons/FontAwesome"
 import CategoryScreen from "./CategoryScreen"
 import ProductScreen from "./ProductScreen"
+import CartScreen from './CartScreen'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import theme from "./common/theme"
 
@@ -19,7 +20,7 @@ export default function AdminScreen (){
             tabBarActiveBackgroundColor : theme.colors.primary
         }} >
             {/* <Text style={{fontWeight : 'bold'}} */}
-          {[['product',ProductScreen,'cutlery'],['category',CategoryScreen,'list-ul']].map((tab,index)=>
+          {[['product',ProductScreen,'cutlery'],['category',CategoryScreen,'list-ul'],['cart',CartScreen,'shopping-basket']].map((tab,index)=>
                 <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{tabBarIcon : ({color,size})=><Icon name={tab[2]} color={color} size={size}/>}} />
             )}  
           

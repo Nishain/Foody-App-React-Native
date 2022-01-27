@@ -44,11 +44,17 @@ const styles = StyleSheet.create({
         height : '100%'
     },  
     itemCell : {
+        elevation : 2,
+        shadowOffset : {
+            height : 2,
+            width : 0
+        },
+        
         backgroundColor : '#fff',
         padding : 10,
-        borderBottomColor : '#000',
+        borderBottomColor : theme.colors.primary,
         borderBottomWidth : 1,
-        margin : 2,
+        margin : 5,
         flexDirection : 'row',
         justifyContent : 'space-between'
     },

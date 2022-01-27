@@ -3,15 +3,16 @@ import { useState } from 'react'
 import { FlatList, View,SafeAreaView, StyleSheet } from 'react-native'
 import { Text,Searchbar, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/FontAwesome'
+import CustomSnackBar from './common/CustomSnackBar'
 import TextInput from './common/TextInput'
 import theme from './common/theme'
 export default function CategoryScreen(){
     const [data,setData] = useState(['camel','Affreica','something','nothing','anything'])
+    const [categoryName,setCategoryName] = useState('')
+    const [snackBarMessage,setSnackBarMessage] = useState(null)
     const removeElement = (element)=>{
-        const removed =  data.splice(data.indexOf(element),1)
-        console.log(data)
+        data.splice(data.indexOf(element),1)
         setData([...data])
-        console.log('item has removed '+removed[0])
     }
     const renderItem = (itemValue)=>{
         return <View style={styles.itemCell}>
@@ -19,17 +20,29 @@ export default function CategoryScreen(){
             <Icon size={15} onPress={()=>removeElement(itemValue.item)} name="close"/>
         </View>
     }
-
-    return <View>
+    const addCategory = ()=>{
+        if(data.findIndex(value=>value.toLowerCase() == categoryName.toLowerCase()) > -1){
+            setSnackBarMessage('Category name should be unique')
+            return
+        }
+        const newData = [...data]
+        newData.push(categoryName)
+        setData(newData)
+    }
+    return <View style={styles.container}>
         <Text style={styles.header}>Categories</Text>
         <Searchbar style={styles.searchBar} placeholder="Search categories" icon="search"/>
         <View style={styles.addRow}>
-            <TextInput placeholder="Add Category" containerStyle={{flex : 1}}/><Button style={{flex : 0,marginStart : 10}} mode='contained'>Add</Button>
+            <TextInput onChangeText={setCategoryName} placeholder="Add Category" containerStyle={{flex : 1}}/><Button style={{flex : 0,marginStart : 10}} onPress={addCategory} mode='contained'>Add</Button>
         </View>
         <FlatList style={styles.flatList} data={data} renderItem={renderItem} keyExtractor={(value)=>data.indexOf(value)}/>
+        <CustomSnackBar setMessage={setSnackBarMessage} message={snackBarMessage}/>
     </View>
 }
 const styles = StyleSheet.create({
+    container : {
+        height : '100%'
+    },  
     itemCell : {
         backgroundColor : '#fff',
         padding : 10,

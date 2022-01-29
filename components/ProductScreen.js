@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import database from '@react-native-firebase/database';
-import { StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import { BottomNavigation, Button, Searchbar } from 'react-native-paper';
 import TextInput from './common/TextInput';
 
@@ -56,6 +56,7 @@ export default function ProductScreen(){
             />
         <TextInput description="Discount limit" label="Discount limit"/>
         <Button mode='contained'>Create</Button>
+        
     </View>
 }
 const styles = StyleSheet.create({

@@ -9,6 +9,7 @@ import AwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import AdminScreen from './components/AdminScreen';
 import { Modal, View } from 'react-native';
 import {theme} from './components/common/theme';
+import BillGenerateScreen from './components/BillGenerateScreen';
 const Stack = createNativeStackNavigator()
 export default App = () => {
     const ModalScreen = () => {
@@ -27,6 +28,7 @@ export default App = () => {
         }}>
             <Stack.Screen name="login" component={LoginScreen} />
             <Stack.Screen name="admin" component={AdminScreen} />
+            <Stack.Screen name="billGenerate" component={BillGenerateScreen} />
         </Stack.Navigator>
     </NavigationContainer>
     </Provider>

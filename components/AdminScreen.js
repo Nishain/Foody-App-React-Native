@@ -10,7 +10,7 @@ import { Button, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-n
 import FoodBrowseScreen from "./FoodsScreen"
 import PaymentHistory from "./PaymentHistory"
 const Tab = createBottomTabNavigator();
-export default function AdminScreen() {
+export default function AdminScreen({navigation}) {
     // const [navigationIndex,setNavigationIndex] = useState(0)
     const [modalVisible, setModalVisible] = useState(false)
    
@@ -32,7 +32,10 @@ export default function AdminScreen() {
                 <MaterialIcon name='keyboard-arrow-down' size={50} color='grey' style={{marginTop : -20}} />
             <Text  style={{color : 'black',fontSize : 20 ,fontWeight : 'bold'}}>More Options</Text>
             <View style={{alignSelf : 'flex-start'}}>
-            <Text>Hello world</Text>
+            {
+                [['Payment History',''],['Generate Bill','billGenerate']].map(route=><Text key={route[0]} style={styles.navigationSubmenuItems} 
+                    onPress={()=>{navigation.push(route[1])}}>{route[0]}</Text>)
+            }
             </View>
             </View>
             
@@ -48,7 +51,7 @@ export default function AdminScreen() {
             headerShown: false,
 
             tabBarStyle: { height: '8%'},
-            tabBarItemStyle: { borderTopRightRadius: 10, borderTopLeftRadius: 10, borderWidth: 2, borderColor: theme.colors.primary },
+            tabBarItemStyle: { borderTopRightRadius: 10, borderTopLeftRadius: 10, borderTopWidth: 2, borderColor: theme.colors.primary },
             tabBarActiveTintColor: 'white',
             tabBarInactiveTintColor: theme.colors.primary,
             tabBarLabelStyle: { fontSize: 15 },
@@ -81,5 +84,11 @@ const styles = StyleSheet.create({
         borderTopRightRadius : 20 ,
         padding : 10,
         paddingTop : 20
+    },
+    navigationSubmenuItems : {
+        margin : 5,
+        fontWeight : 'bold',
+        color : 'black',
+        fontSize : 20
     }
 })

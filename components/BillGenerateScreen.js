@@ -6,7 +6,7 @@ import TextInput from "./common/TextInput";
 import theme from "./common/theme";
 
 export default function BillGenerateScreen (){
-    const fields = ['Tax Price','Transport Price','Restrurant Name','Contact Details',{name : 'Address' , multiline : true}]
+    const fields = ['Tax Price','Transport Price','Restrurant Name',{name : 'Note' , multiline : true}, 'Contact Details',{name : 'Address' , multiline : true}]
     const [fieldValues,setFieldValues] = useState({})
     const [snackBarMsg,setSnackbarMsg] = useState(undefined)
     const changeInputText = (key,value) => {

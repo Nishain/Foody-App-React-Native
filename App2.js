@@ -10,6 +10,8 @@ import AdminScreen from './components/AdminScreen';
 import { Modal, View } from 'react-native';
 import {theme} from './components/common/theme';
 import BillGenerateScreen from './components/BillGenerateScreen';
+import ProductScreen from './components/ProductScreen';
+import CategoryScreen from './components/CategoryScreen';
 const Stack = createNativeStackNavigator()
 export default App = () => {
     const ModalScreen = () => {
@@ -28,7 +30,8 @@ export default App = () => {
         }}>
             <Stack.Screen name="login" component={LoginScreen} />
             <Stack.Screen name="admin" component={AdminScreen} />
-            <Stack.Screen name="billGenerate" component={BillGenerateScreen} />
+            <Stack.Screen name="createFood" component={ProductScreen} />
+            <Stack.Screen name="createCategory" component={CategoryScreen} />
         </Stack.Navigator>
     </NavigationContainer>
     </Provider>

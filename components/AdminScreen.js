@@ -13,28 +13,18 @@ const Tab = createBottomTabNavigator();
 export default function AdminScreen({navigation}) {
     // const [navigationIndex,setNavigationIndex] = useState(0)
     const [modalVisible, setModalVisible] = useState(false)
-   
-
-        {/* <Modal style={styles.modal}
-                animationType="slide"
-                transparent={true}
-                visible={ModalVisible}
-            > <Text>Hello wolrd</Text>
-                <Button onPress={()=>{
-                    setModalVisible(false)
-                    setTimeout(()=>{setModalVisible(true)},2000)
-                }} title="Re-open"/>
-               
-            </Modal> */}
         const CustomModal = ()=><Modal animationType='fade' transparent={true} onRequestClose={()=>{setModalVisible(false)}} visible={modalVisible} >
             <TouchableOpacity style={{backgroundColor : 'rgba(0, 0, 0, 0.5)',flex : 1,marginBottom:-30}} onPress={()=>{setModalVisible(false)}} />
             <View style={styles.modal}>
-                <MaterialIcon name='keyboard-arrow-down' size={50} color='grey' style={{marginTop : -20}} />
+                <MaterialIcon name='menu-open' size={50} color='grey' style={{marginTop : -20}} />
             <Text  style={{color : 'black',fontSize : 20 ,fontWeight : 'bold'}}>More Options</Text>
             <View style={{alignSelf : 'flex-start'}}>
             {
-                [['Payment History',''],['Generate Bill','billGenerate']].map(route=><Text key={route[0]} style={styles.navigationSubmenuItems} 
-                    onPress={()=>{navigation.push(route[1])}}>{route[0]}</Text>)
+                [['Create Product','createFood'],['Create Category','createCategory']].map(route=><View style={styles.navigationSubmenuItemRow}>
+                    <Text key={route[0]} style={styles.navigationSubmenuItems} 
+                    onPress={()=>{navigation.push(route[1])}}>{route[0]}</Text>
+                    <MaterialIcon name='keyboard-arrow-right' size={30} color='grey'/>
+                </View>)
             }
             </View>
             </View>
@@ -59,7 +49,7 @@ export default function AdminScreen({navigation}) {
         }} >
 
             {/* <Text style={{fontWeight : 'bold'}} */}
-            {[['product', ProductScreen, 'cutlery'], ['category', CategoryScreen, 'list-ul'], ['cart', CartScreen, 'shopping-basket']].map((tab, index) =>
+            {[['product', FoodBrowseScreen, 'cutlery'], ['category', CategoryScreen, 'list-ul'], ['cart', CartScreen, 'shopping-basket']].map((tab, index) =>
                 <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{ tabBarIcon: ({ color, size }) => <Icon name={tab[2]} color={color} size={size} /> }} />
             )}
                 <Tab.Screen  name="more" component={emptyBackground} title="More" listeners={({ navigation }) => ({
@@ -87,8 +77,14 @@ const styles = StyleSheet.create({
     },
     navigationSubmenuItems : {
         margin : 5,
-        fontWeight : 'bold',
+        alignSelf : 'flex-start',
+        // fontWeight : 'bold',
         color : 'black',
         fontSize : 20
+    },
+    navigationSubmenuItemRow : {
+        flexDirection : 'row',
+        justifyContent : 'space-between',
+        width : '80%'
     }
 })

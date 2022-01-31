@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { Button, FlatList, StyleSheet, Text, View } from "react-native";
+import { Button, FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
 import CustomSearchBar from "./common/SearchBar";
 import theme from "./common/theme";
 import Icon from 'react-native-vector-icons/FontAwesome'
 import KeyValueText from "./common/KeyValueText";
 import CustomCard from "./common/CustomCard";
+import { SafeAreaView } from "react-native-safe-area-context";
 export default function CategoryScreen() {
     const [data, setData] = useState([{
         name: 'Food 1',
@@ -23,6 +24,10 @@ export default function CategoryScreen() {
         item.quantity += mode == 'add' ? 1 : -1
         setData([...data])
     }
+    const removeItem = (index) => {
+        data.splice(index,1)
+        setData([...data])
+    }
     const renderItem = (value) => {
         const item = value.item
         return <CustomCard> 
@@ -36,14 +41,18 @@ export default function CategoryScreen() {
                 <KeyValueText qtyEditable={true} qtyChangeHandler={(mode)=>{qtyChangeHandler(mode,item)}} description='Quantity' value={item.quantity} />
             </View>
             <View style={styles.iconPadding}>
-                <Icon name='trash-o' size={25} color={'red'} />
+                <Icon onPress={()=>{removeItem(value.index)}} name='trash-o' size={25} color={'red'} />
             </View></CustomCard>
 
     }
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Cart</Text>
         <CustomSearchBar placeholder='Search Items' />
-        <FlatList data={data} renderItem={renderItem} keyExtractor={(value) => data.indexOf(value)} />
+        <SafeAreaView style={{flex : 1}}>
+        {data.length == 0 ? 
+            <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
+        : <FlatList data={data}  renderItem={renderItem} keyExtractor={(value) => data.indexOf(value)} />}
+        </SafeAreaView>
         <Button title="Generate Bill"/>
     </View>
 }
@@ -56,7 +65,11 @@ const styles = StyleSheet.create({
         padding: 10,
         aspectRatio: 1
     },
-
+    cartEmptyLabel : {
+        fontSize : 20,
+        margin : 10,
+        alignSelf : 'center'
+    },
     underline: {
         flex: 0,
         marginTop: 2,

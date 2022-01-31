@@ -19,6 +19,10 @@ export default function CategoryScreen() {
         quantity: 3
     }
     ])
+    const qtyChangeHandler = (mode,item) => {
+        item.quantity += mode == 'add' ? 1 : -1
+        setData([...data])
+    }
     const renderItem = (value) => {
         const item = value.item
         return <CustomCard> 
@@ -29,7 +33,7 @@ export default function CategoryScreen() {
                 </View>
                 <KeyValueText description="Description" value={item.description} isVerical />
                 <KeyValueText description='Price' value={item.price} />
-                <KeyValueText description='Quantity' value={item.quantity} />
+                <KeyValueText qtyEditable={true} qtyChangeHandler={(mode)=>{qtyChangeHandler(mode,item)}} description='Quantity' value={item.quantity} />
             </View>
             <View style={styles.iconPadding}>
                 <Icon name='trash-o' size={25} color={'red'} />

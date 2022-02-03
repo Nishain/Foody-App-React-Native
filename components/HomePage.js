@@ -70,7 +70,7 @@ export default function AdminScreen({ navigation,route }) {
                         tabBarActiveBackgroundColor: theme.colors.primary
                     }} >
 
-                    {[['product', FoodBrowseScreen, 'cutlery'], ['Browse', BillGenerateScreen, 'list-ul'], ['cart', CartScreen, 'shopping-basket'], ['createFood', ProductScreen], ['createCategory', CategoryScreen]].map((tab, index) =>
+                    {[['product', FoodBrowseScreen, 'cutlery'], ['Generate Bill', BillGenerateScreen, 'list-ul'], ['cart', CartScreen, 'shopping-basket'],['Payment History',PaymentHistory,'history'], ['createFood', ProductScreen], ['createCategory', CategoryScreen]].map((tab, index) =>
                         tab.length == 2 ? <Tab.Screen key={index} name={tab[0]} component={tab[1]} options={{ tabBarButton: () => null }} /> :
                             <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{ tabBarIcon: ({ color, size }) => <Icon name={tab[2]} color={color} size={size} /> }} />
                     )}

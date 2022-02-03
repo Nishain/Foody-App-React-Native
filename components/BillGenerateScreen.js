@@ -12,21 +12,25 @@ import theme from "./common/theme";
 import helper from './common/helper'
 import bcrypt from 'bcryptjs'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-export default function BillGenerateScreen() {
+import database from '@react-native-firebase/database'
+export default function BillGenerateScreen({navigation}) {
+    const reference = database().ref('/history/')
     const orderUniqueCode = helper.generateCode(10)
     const fields = [
         { name: 'Bill Code', disabled: true, value: orderUniqueCode },
         { name: 'Order Date', disabled: true, value: new Date().toDateString() },
-        'Customer Name', { name: 'Tax Price', validation: /^[0-9]+$/ }, { name: 'Transport Price', validation: /^[0-9]+$/ },
+        'Customer Name', { name: 'Tax Price' ,expense : true }, { name: 'Transport Price', expense : true },
+        { name: 'Additional Price',expense : true },
         'Restrurant Name', { name: 'Note', multiline: true, nonMandatory: true },
         'Contact Details', { name: 'Address', multiline: true }]
     //manadatory to keep companyLogo as the first element in companyDetailsFields array
-    const companyDetailsFields = ['companyLogo','name', 'address', 'contact','signature']
+    const companyDetailsFields = ['companyLogo','name', 'address', 'contact']
+    const fieldToIncludeOnBillHistory = ['Bill Code','Order Date','Customer Name'] //total price is automatically added...
     const [fieldValues, setFieldValues] = useState({})
     const [snackBarMsg, setSnackbarMsg] = useState(undefined)
-    const [billSignature,setBillSignature] = useState(undefined)
     const [companyDetails, setCompanyDetails] = useState({})
     const [isEditingCompanyDetails, setIsEditingCompanyDetails] = useState(false)
+    const cartContext = useContext(CartContext)
     const changeInputText = (key, value, isCompanyFields = false) => {
         if (!isCompanyFields)
             setFieldValues({ ...fieldValues, [key]: { 'value': value } })
@@ -52,7 +56,9 @@ export default function BillGenerateScreen() {
                 validationError = true
                 errorFields[fieldName] = { error: `${fieldName} should not be empty` }
 
-            } else if (fieldProperties.validation && !fieldValues[fieldName].value.match(fieldProperties.validation)) {
+            } else if ((fieldProperties.expense && isNaN(fieldValues[fieldName].value)) //check if expense field in correct numerical format
+                //or check against given regex validation expression given by preoprty 'validation'    
+            || (fieldProperties.validation && !fieldValues[fieldName].value.match(fieldProperties.validation))) {
                 validationError = true
                 errorFields[fieldName] = { error: `Enter a valid value for ${fieldName}` }
             }
@@ -63,9 +69,35 @@ export default function BillGenerateScreen() {
         return validationError
     }
     const generateBill = () => {
+      
+
         if (validateFields())
             return
-        setSnackbarMsg('Bill Created')
+        const primaryData = {}    
+        for(const fieldProperties of fields){
+            if(typeof fieldProperties == 'string' && fieldToIncludeOnBillHistory.includes(fieldProperties))
+                primaryData[helper.makeCodingFriendly(fieldProperties)] =  fieldValues[fieldProperties].value
+            else if(fieldToIncludeOnBillHistory.includes(fieldProperties.name)) 
+                primaryData[helper.makeCodingFriendly(fieldProperties.name)] = fieldProperties.value || fieldValues[fieldProperties.name].value 
+        }
+        
+        const dataToSubmit = {
+            ...primaryData,
+            totalPrice : calculateTotalPrice(),
+            cart : cartContext.cart.map(cartItem => {
+                return {
+                    name : cartItem.name,
+                    quantity : cartItem.quantity,
+                    price : cartItem.price,
+                    discount : cartItem.discount || 0
+                }
+            })
+        }
+        // console.log(dataToSubmit)
+        reference.push(dataToSubmit,()=>{
+            setSnackbarMsg('Bill Created')
+        })
+        
     }
     const cartRenderer = (value) => {
         const item = value.item
@@ -93,7 +125,6 @@ export default function BillGenerateScreen() {
         }, {})
         setCompanyDetails(formatedDetails)
     }
-    const cartContext = useContext(CartContext)
     const saveCompanyDetails = async () => {
         const allFields = companyDetailsFields
         //check if all fields are not undefined by chaining boolean conditions...
@@ -124,9 +155,22 @@ export default function BillGenerateScreen() {
         }
         setCompanyDetails({ ...companyDetails, 'companyLogo': 'data:image/png;base64,' + result.assets[0].base64 })
     }
-    const generateDigitalSignature = async (companySign)=>{
-        const generatedSignature = await bcrypt.hash(orderUniqueCode,companySign)
-        setBillSignature(generatedSignature)
+   
+    const calculateTotalPrice = () =>{
+        const intialPrice  = cartContext.cart.reduce((totalPrice,cartItem)=>{
+            totalPrice += cartItem.price - (cartItem.discount || 0)
+            return totalPrice
+        },0)
+        const utilityPrice = fields.reduce((totalUtitilityCost,fieldProperties)=>{
+            // console.log(fieldProperties)
+            if(fieldProperties.expense && fieldValues[fieldProperties.name]){ //check if the field is expense field
+                if(isNaN(fieldValues[fieldProperties.name].value))
+                    return totalUtitilityCost // do not process if user had made a validation error...
+                return totalUtitilityCost + parseFloat(fieldValues[fieldProperties.name].value) 
+            }else
+                return totalUtitilityCost //do not make a change to price when reading non-expense field
+        },0)
+        return intialPrice + utilityPrice
     }
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Bill Generate</Text>
@@ -145,7 +189,7 @@ export default function BillGenerateScreen() {
                     // don't give label to textBox of field is disabled
                     {... !fieldParam.disabled ? { 'label': field } : null}
                     multiline={fieldParam.multiline}
-                    returnKeyType={index == (fields.length - 1) ? "next" : 'done'}
+                    returnKeyType={index == (fields.length - 1) ? "done" : 'next'}
                     onChangeText={(text) => changeInputText(field, text)}
                     error={get(field, 'error')}
                     errorText={get(field, 'error') || ''}
@@ -156,7 +200,8 @@ export default function BillGenerateScreen() {
                 <View style={{flex : 1}}>
                     <Text style={theme.foodTitle}>Total Amount</Text>
                     <View style={theme.underline} />
-                    <Text style={theme.foodTitle}>{'Rs ' + cartContext.cart.reduce((total, item) => total + item.price, 0)}</Text>
+                    <Text style={theme.foodTitle}>{'Rs ' + calculateTotalPrice()}</Text>
+                    <CustomButton title="See cart" mode="contained" onPress={()=>{navigation.jumpTo('cart')}} />
                 </View>
                 <View style={{flex : 1,marginLeft : 5,alignItems : 'stretch'}}>
                     {Object.keys(companyDetails).length == (companyDetailsFields.length) ? //check if all atrributes are present...
@@ -168,15 +213,14 @@ export default function BillGenerateScreen() {
                             <Text>{companyDetails.address}</Text>
                             <Text>{companyDetails.contact}</Text>
                             </View>
-                            <CustomButton title="Edit" mode="contained" onPress={() => { setIsEditingCompanyDetails(true) }} />
+                            <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} />
                         </> : <>
                             <Text>Some Company details are missing</Text>
-                            <CustomButton  title="Edit" mode="contained" onPress={() => { setIsEditingCompanyDetails(true) }} /></>
+                            <CustomButton  title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} /></>
                     }
                 </View>
             </View>
 
-            {companyDetails.signature && <KeyValueText key="Signature" value={billSignature}/>}
             <CustomButton buttonStyle={{marginTop : 7}} title="Generate" onPress={generateBill} mode="contained" />
 
             

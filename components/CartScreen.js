@@ -7,31 +7,27 @@ import KeyValueText from "./common/KeyValueText";
 import CustomCard from "./common/CustomCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CartContext from "./CartContext";
-export default function CategoryScreen() {
+import TextInput from "./common/TextInput";
+import CustomButton from "./common/CustomButton";
+export default function CategoryScreen({navigation}) {
 
-    const [data, setData] = useState([{
-        name: 'Food 1',
-        description: 'Amazing food',
-        price: 400,
-        quantity: 4
-    },
-    {
-        name: 'Food 2',
-        description: 'Amazing food 2',
-        price: 300,
-        quantity: 3
-    }
-    ])
+   
     const cartContext = useContext(CartContext)
     const [searchCriteria,setSearchCriteria] = useState(undefined)
     const qtyChangeHandler = (mode, item) => {
-        item.quantity += mode == 'add' ? 1 : -1
+        item.quantity += mode == 'add' ? 1 : -1 // item is originally belong to cart variable so changes happens reflectively....
         cartContext.setCart([...cartContext.cart])
     }
     const removeItem = (index) => {
         cartContext.cart.splice(index, 1)
         cartContext.setCart([...cartContext.cart])
-        // cartSetter([...cart])
+    }
+    const changeDiscountAmount = (text,item) => {
+        if(text == "")
+            item.discount = undefined
+        else
+            item.discount = parseFloat(text)    
+        cartContext.setCart([...cartContext.cart])    
     }
     const renderItem = (value) => {
         const item = value.item
@@ -43,6 +39,8 @@ export default function CategoryScreen() {
                 </View>
                 <KeyValueText description="Description" value={item.description} isVerical />
                 <KeyValueText description='Price' value={item.price} />
+                <TextInput description="Discount (%)"  placeholder="Discount %" keyboardType='number-pad' maxLength={2}
+                onChangeText={(text)=>{changeDiscountAmount(text, item)}}/>
                 <KeyValueText qtyEditable={true} qtyChangeHandler={(mode) => { qtyChangeHandler(mode, item) }} description='Quantity' value={item.quantity} />
             </View>
             <View style={styles.iconPadding}>
@@ -59,7 +57,7 @@ export default function CategoryScreen() {
                 <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
                 : <FlatList data={searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart} renderItem={renderItem} keyExtractor={(value) => cartContext.cart.indexOf(value)} />}
         </SafeAreaView>
-        <Button title="Generate Bill" />
+        <CustomButton buttonStyle={{margin : 10}} title="Generate Bill" mode="outlined" onPress={()=>{navigation.jumpTo('Generate Bill')}}/>
     </View>
 }
 const styles = StyleSheet.create({

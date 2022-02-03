@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { TouchableOpacity, StyleSheet, View } from 'react-native'
-import { Button, Text,Snackbar } from 'react-native-paper'
+import { TouchableOpacity, StyleSheet, View, Switch } from 'react-native'
+import { Button, Text, Snackbar } from 'react-native-paper'
 import BackButton from './common/BackButton'
 import Background from './common/Background'
 import Logo from './common/logo'
@@ -8,11 +8,15 @@ import TextInput from './common/TextInput'
 import auth from '@react-native-firebase/auth';
 import theme from './common/theme'
 import CustomSnackBar from './common/CustomSnackBar'
+import database from '@react-native-firebase/database'
 
 const EMAIL = 'email', PASSWORD = 'password', CONFIRM_PASSWORD = 'confirmPassword'
 export default function LoginScreen({ navigation }) {
-    const [inputFields, setInputFields] = useState({ email: {}, password: {}, confirmPassword: {} })
-    const [snackbarMessage,setSnackbarMessage] = useState(null)
+    const reference = database().ref('/user/')
+    const [inputFields, setInputFields] = useState({
+        email: {}, password: {}, confirmPassword: {}, isAdmin: false
+    })
+    const [snackbarMessage, setSnackbarMessage] = useState(null)
     const [authMode, setAuthMode] = useState('login')
     const signUp = async () => {
         if (validate())
@@ -25,24 +29,28 @@ export default function LoginScreen({ navigation }) {
             })
             return
         }
-        try{
-            await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD))
-            setSnackbarMessage('successfully created an account')
-        }catch(error){
+        try {
+            await (await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD)))
+            reference.push({isAdmin : inputFields.isAdmin},()=>{
+                navigation.replace('home',{isAdmin : inputFields.isAdmin}) 
+                // setSnackbarMessage('successfully created an account')
+            })
+            
+        } catch (error) {
             handleError(error)
         }
         // userCredentials.user.
     }
-    const requestForgetPassword = async ()=>{
+    const requestForgetPassword = async () => {
         const emailAddress = (get(EMAIL) || '')
-        if(emailAddress == ''){
-            setInputFields({...inputFields,'email':{error:'You should at least provide an email address'}})
+        if (emailAddress == '') {
+            setInputFields({ ...inputFields, 'email': { error: 'You should at least provide an email address' } })
             return
         }
-        try{
+        try {
             await auth().sendPasswordResetEmail(emailAddress)
             setSnackbarMessage(`password reset link successfully sent to ${emailAddress}`)
-        }catch(error){
+        } catch (error) {
             handleError(error)
         }
     }
@@ -51,8 +59,12 @@ export default function LoginScreen({ navigation }) {
         if (validate())
             return
         try {
-            await auth().signInWithEmailAndPassword(get(EMAIL), get(PASSWORD))
-            setSnackbarMessage('login successful!')
+            const user = await auth().signInWithEmailAndPassword(get(EMAIL), get(PASSWORD))
+            
+            reference.child(user.user.uid).once('value',(snapshot)=>{
+                navigation.replace('home',{isAdmin : snapshot.val().isAdmin}) 
+            })
+            // setSnackbarMessage('login successful!')
         } catch (error) {
             handleError(error)
         }
@@ -75,16 +87,16 @@ export default function LoginScreen({ navigation }) {
                 message = 'incorrect credentials'
                 break
             case 'auth/weak-password':
-                message = 'Your password is too weak!. Enter stronger password'    
+                message = 'Your password is too weak!. Enter stronger password'
                 break
             case 'auth/email-already-in-use':
-                message = 'Sorry already such user exists'    
+                message = 'Sorry already such user exists'
                 break
             default:
                 console.log(error.code)
-                message = 'Sorry unknown error has occured'    
+                message = 'Sorry unknown error has occured'
         }
-        if(message.length > 0)
+        if (message.length > 0)
             setSnackbarMessage(message)
     }
     const changeAuthMode = () => {
@@ -102,8 +114,6 @@ export default function LoginScreen({ navigation }) {
         }
         if (validateError)
             setInputFields(newValue)
-        console.log(`validate error occured ${validateError.toString()}`)
-        console.log(`validate error ${JSON.stringify(newValue).toString()}`)
         return validateError
     }
     const primaryAction = () => {
@@ -140,7 +150,7 @@ export default function LoginScreen({ navigation }) {
                     errorText={inputFields.password.error || ''}
                     secureTextEntry
                 />
-                {authMode == 'signup' && <TextInput
+                {authMode == 'signup' && <><TextInput
                     label="ConfirmPassword"
                     returnKeyType="done"
                     // value={confirmPassword.value}
@@ -148,12 +158,19 @@ export default function LoginScreen({ navigation }) {
                     error={inputFields.confirmPassword.error}
                     errorText={inputFields.confirmPassword.error || ''}
                     secureTextEntry
-                />}
+                />
+                    <View style={styles.row}>
+                        <Text style={styles.secondaryText}>Register as Admin ?</Text>
+
+                        <Switch value={inputFields.isAdmin} onValueChange={(value)=>{setInputFields({...inputFields,isAdmin : value})}}/>
+                    </View>
+                </>}
+
                 <View style={styles.forgotPassword}>
                     <TouchableOpacity
                         onPress={requestForgetPassword}
                     >
-                        <Text style={styles.forgot}>Forgot your password?</Text>
+                        <Text style={styles.secondaryText}>Forgot your password?</Text>
                     </TouchableOpacity>
                 </View>
                 <Button mode="contained" onPress={primaryAction}>
@@ -187,11 +204,12 @@ const styles = StyleSheet.create({
         marginBottom: 24,
     },
     row: {
+        alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
         marginTop: 4,
     },
-    forgot: {
+    secondaryText: {
         fontWeight: 'bold',
         fontSize: 13,
         color: theme.colors.secondary,

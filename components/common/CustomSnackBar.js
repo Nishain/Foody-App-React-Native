@@ -22,11 +22,11 @@ const style = StyleSheet.create({
         backgroundColor : 'black',
         color : 'white',
         padding : 15,
-        // width : '100%',
+         width : '100%',
         alignSelf : 'stretch',
         margin : 10,
-        
-        position : 'relative',
+        flex : 0,
+        position : 'absolute',
         bottom  : 0,
         // width : '100%',
         borderRadius : 10

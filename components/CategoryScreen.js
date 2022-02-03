@@ -1,34 +1,57 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { FlatList, View,SafeAreaView, StyleSheet } from 'react-native'
 import { Text,Searchbar, Button } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/FontAwesome'
 import CustomSnackBar from './common/CustomSnackBar'
 import TextInput from './common/TextInput'
+import database from '@react-native-firebase/database';
 import theme from './common/theme'
+
 export default function CategoryScreen(){
-    const [data,setData] = useState(['camel','Affreica','something','nothing','anything'])
+    const reference = database().ref('/category/')
+    const [data,setData] = useState([])
     const [categoryName,setCategoryName] = useState('')
     const [snackBarMessage,setSnackBarMessage] = useState(null)
-    const removeElement = (element)=>{
-        data.splice(data.indexOf(element),1)
-        setData([...data])
+    const removeElement = (elementIndex)=>{
+        reference.child(data[elementIndex].key).remove(()=>{
+            setSnackBarMessage('successfully removed category')
+        })
+        // data.splice(data.indexOf(elementIndex),1)
+        // setData([...data])
     }
+
     const renderItem = (itemValue)=>{
         return <View style={styles.itemCell}>
-            <Text>{itemValue.item}</Text>
-            <Icon size={15} onPress={()=>removeElement(itemValue.item)} name="close"/>
+            <Text>{itemValue.item.name}</Text>
+            <Icon size={15} onPress={()=>removeElement(itemValue.index)} name="close"/>
         </View>
     }
     const addCategory = ()=>{
-        if(data.findIndex(value=>value.toLowerCase() == categoryName.toLowerCase()) > -1){
+        if(data.findIndex(value=>value.name.toLowerCase() == categoryName.toLowerCase()) > -1){
             setSnackBarMessage('Category name should be unique')
             return
         }
-        const newData = [...data]
-        newData.push(categoryName)
-        setData(newData)
+
+        const newGeneratedKey = reference.push(categoryName,()=>{
+            setSnackBarMessage('added Category Successfully')
+        }).key
+        console.log(`new key ${newGeneratedKey}`)
+        // var newData = [...data]
+        // newData.push({key : newGeneratedKey,name : categoryName})
+        // setData(newData)
     }
+    useEffect(()=>{
+        reference.on('value',(snapshot) => {
+            const categoryDBList = snapshot.val()
+            const newData = []
+            for(const category in categoryDBList){
+                newData.push({key : category, name : categoryDBList[category]})
+            }
+            console.log(newData)
+            setData(newData)
+        })
+    },[])
     return <View style={styles.container}>
         <Text style={styles.header}>Categories</Text>
         <Searchbar style={styles.searchBar} placeholder="Search categories" icon="search"/>

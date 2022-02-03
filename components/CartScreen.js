@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Button, FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
 import CustomSearchBar from "./common/SearchBar";
 import theme from "./common/theme";
@@ -6,7 +6,9 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import KeyValueText from "./common/KeyValueText";
 import CustomCard from "./common/CustomCard";
 import { SafeAreaView } from "react-native-safe-area-context";
+import CartContext from "./CartContext";
 export default function CategoryScreen() {
+
     const [data, setData] = useState([{
         name: 'Food 1',
         description: 'Amazing food',
@@ -20,40 +22,44 @@ export default function CategoryScreen() {
         quantity: 3
     }
     ])
-    const qtyChangeHandler = (mode,item) => {
+    const cartContext = useContext(CartContext)
+    const [searchCriteria,setSearchCriteria] = useState(undefined)
+    const qtyChangeHandler = (mode, item) => {
         item.quantity += mode == 'add' ? 1 : -1
-        setData([...data])
+        cartContext.setCart([...cartContext.cart])
     }
     const removeItem = (index) => {
-        data.splice(index,1)
-        setData([...data])
+        cartContext.cart.splice(index, 1)
+        cartContext.setCart([...cartContext.cart])
+        // cartSetter([...cart])
     }
     const renderItem = (value) => {
         const item = value.item
-        return <CustomCard> 
+        return <CustomCard>
             <View>
                 <View style={{ alignSelf: 'flex-start' }}>
-                    <Text style={styles.foodTitle}>{item.name}</Text>
-                    <View style={styles.underline} />
+                    <Text style={theme.foodTitle}>{item.name}</Text>
+                    <View style={theme.underline} />
                 </View>
                 <KeyValueText description="Description" value={item.description} isVerical />
                 <KeyValueText description='Price' value={item.price} />
-                <KeyValueText qtyEditable={true} qtyChangeHandler={(mode)=>{qtyChangeHandler(mode,item)}} description='Quantity' value={item.quantity} />
+                <KeyValueText qtyEditable={true} qtyChangeHandler={(mode) => { qtyChangeHandler(mode, item) }} description='Quantity' value={item.quantity} />
             </View>
             <View style={styles.iconPadding}>
-                <Icon onPress={()=>{removeItem(value.index)}} name='trash-o' size={25} color={'red'} />
+                <Icon onPress={() => { removeItem(value.index) }} name='trash-o' size={25} color={'red'} />
             </View></CustomCard>
 
     }
+
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Cart</Text>
-        <CustomSearchBar placeholder='Search Items' />
-        <SafeAreaView style={{flex : 1}}>
-        {data.length == 0 ? 
-            <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
-        : <FlatList data={data}  renderItem={renderItem} keyExtractor={(value) => data.indexOf(value)} />}
+        <CustomSearchBar placeholder='Search Items' onSearch={setSearchCriteria}/>
+        <SafeAreaView style={{ flex: 1 }}>
+            {cartContext.cart.length == 0 ?
+                <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
+                : <FlatList data={searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart} renderItem={renderItem} keyExtractor={(value) => cartContext.cart.indexOf(value)} />}
         </SafeAreaView>
-        <Button title="Generate Bill"/>
+        <Button title="Generate Bill" />
     </View>
 }
 const styles = StyleSheet.create({
@@ -65,10 +71,10 @@ const styles = StyleSheet.create({
         padding: 10,
         aspectRatio: 1
     },
-    cartEmptyLabel : {
-        fontSize : 20,
-        margin : 10,
-        alignSelf : 'center'
+    cartEmptyLabel: {
+        fontSize: 20,
+        margin: 10,
+        alignSelf: 'center'
     },
     underline: {
         flex: 0,

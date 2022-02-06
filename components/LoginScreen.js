@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
-import { TouchableOpacity, StyleSheet, View, Switch } from 'react-native'
-import { Button, Text, Snackbar } from 'react-native-paper'
+import { TouchableOpacity, StyleSheet, View, Switch, Text } from 'react-native'
 import BackButton from './common/BackButton'
 import Background from './common/Background'
 import Logo from './common/logo'
@@ -9,6 +8,9 @@ import auth from '@react-native-firebase/auth';
 import theme from './common/theme'
 import CustomSnackBar from './common/CustomSnackBar'
 import database from '@react-native-firebase/database'
+import CustomButton from './common/CustomButton'
+import UserRoleContext from './UserRoleContext'
+import { useContext } from 'react/cjs/react.development'
 
 const EMAIL = 'email', PASSWORD = 'password', CONFIRM_PASSWORD = 'confirmPassword'
 export default function LoginScreen({ navigation }) {
@@ -18,6 +20,7 @@ export default function LoginScreen({ navigation }) {
     })
     const [snackbarMessage, setSnackbarMessage] = useState(null)
     const [authMode, setAuthMode] = useState('login')
+    const userRoleContext = useContext(UserRoleContext)
     const signUp = async () => {
         if (validate())
             return
@@ -32,7 +35,8 @@ export default function LoginScreen({ navigation }) {
         try {
             await (await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD)))
             reference.push({isAdmin : inputFields.isAdmin},()=>{
-                navigation.replace('home',{isAdmin : inputFields.isAdmin}) 
+                userRoleContext.setIsAdmin(inputFields.isAdmin)
+                navigation.replace('home') 
                 // setSnackbarMessage('successfully created an account')
             })
             
@@ -62,7 +66,9 @@ export default function LoginScreen({ navigation }) {
             const user = await auth().signInWithEmailAndPassword(get(EMAIL), get(PASSWORD))
             
             reference.child(user.user.uid).once('value',(snapshot)=>{
-                navigation.replace('home',{isAdmin : snapshot.val().isAdmin}) 
+                userRoleContext.setIsAdmin(snapshot.val().isAdmin)
+                navigation.replace('home') 
+                
             })
             // setSnackbarMessage('login successful!')
         } catch (error) {
@@ -173,9 +179,7 @@ export default function LoginScreen({ navigation }) {
                         <Text style={styles.secondaryText}>Forgot your password?</Text>
                     </TouchableOpacity>
                 </View>
-                <Button mode="contained" onPress={primaryAction}>
-                    {authMode == 'login' ? 'Login' : 'Sign Up'}
-                </Button>
+                <CustomButton mode="contained" title={authMode == 'login' ? 'Login' : 'Sign Up'} onPress={primaryAction} />
                 <View style={styles.row}>
                     <Text>{authMode == 'signup' ? 'Already have an account?' : 'Don’t have an account?'} </Text>
                     <TouchableOpacity onPress={changeAuthMode}>

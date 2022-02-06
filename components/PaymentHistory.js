@@ -28,7 +28,7 @@ export default function PaymentHistory(){
         }
         subContent={
             <View style={styles.subContentContainer}>
-                {item.cart.map(cartItem => <View style={styles.subContentItem}>
+                {item.cart.map((cartItem,index) => <View key={index} style={styles.subContentItem}>
                     <KeyValueText description="Name" value={cartItem.name}/>
                     <KeyValueText description="Price" value={cartItem.price}/>
                     <KeyValueText description="Quantity" value={cartItem.quantity}/>

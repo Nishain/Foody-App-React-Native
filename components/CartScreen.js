@@ -15,6 +15,8 @@ export default function CategoryScreen({navigation}) {
     const cartContext = useContext(CartContext)
     const [searchCriteria,setSearchCriteria] = useState(undefined)
     const qtyChangeHandler = (mode, item) => {
+        if(mode == 'remove' && item.quantity == 1)
+            return  
         item.quantity += mode == 'add' ? 1 : -1 // item is originally belong to cart variable so changes happens reflectively....
         cartContext.setCart([...cartContext.cart])
     }
@@ -22,11 +24,22 @@ export default function CategoryScreen({navigation}) {
         cartContext.cart.splice(index, 1)
         cartContext.setCart([...cartContext.cart])
     }
-    const changeDiscountAmount = (text,item) => {
+    const changeDiscountAmount = (event,item) => {
+        const text = event.nativeEvent.text
+        console.log(text)
         if(text == "")
             item.discount = undefined
-        else
+        else{
             item.discount = parseFloat(text)    
+            if(!item.error &&  item.discount > item['discount limit']){
+                item.error = true
+                cartContext.setCartErrorCount(cartContext.cartErrorCount + 1)
+            }
+            else if(item.error){
+                item.error = undefined
+                cartContext.setCartErrorCount(cartContext.cartErrorCount - 1)
+            }
+        }
         cartContext.setCart([...cartContext.cart])    
     }
     const renderItem = (value) => {
@@ -39,8 +52,11 @@ export default function CategoryScreen({navigation}) {
                 </View>
                 <KeyValueText description="Description" value={item.description} isVerical />
                 <KeyValueText description='Price' value={item.price} />
+                <KeyValueText description='Discount limit' value={item['discount limit']} />
                 <TextInput description="Discount (%)"  placeholder="Discount %" keyboardType='number-pad' maxLength={2}
-                onChangeText={(text)=>{changeDiscountAmount(text, item)}}/>
+                errorText={item.error ? 'discount should not be greater than discount limit' : undefined}
+                error={item.error}
+                onEndEditing={(text)=>{changeDiscountAmount(text, item)}}/>
                 <KeyValueText qtyEditable={true} qtyChangeHandler={(mode) => { qtyChangeHandler(mode, item) }} description='Quantity' value={item.quantity} />
             </View>
             <View style={styles.iconPadding}>
@@ -55,6 +71,7 @@ export default function CategoryScreen({navigation}) {
         <SafeAreaView style={{ flex: 1 }}>
             {cartContext.cart.length == 0 ?
                 <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
+                
                 : <FlatList data={searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart} renderItem={renderItem} keyExtractor={(value) => cartContext.cart.indexOf(value)} />}
         </SafeAreaView>
         <CustomButton buttonStyle={{margin : 10}} title="Generate Bill" mode="outlined" onPress={()=>{navigation.jumpTo('Generate Bill')}}/>

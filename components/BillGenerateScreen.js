@@ -13,32 +13,34 @@ import helper from './common/helper'
 import bcrypt from 'bcryptjs'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import database from '@react-native-firebase/database'
-export default function BillGenerateScreen({navigation}) {
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import template from './assets/template'
+// import template from './template.html'
+export default function BillGenerateScreen({ navigation }) {
     const reference = database().ref('/history/')
     const orderUniqueCode = helper.generateCode(10)
     const fields = [
         { name: 'Bill Code', disabled: true, value: orderUniqueCode },
         { name: 'Order Date', disabled: true, value: new Date().toDateString() },
-        'Customer Name', { name: 'Tax Price' ,expense : true }, { name: 'Transport Price', expense : true },
-        { name: 'Additional Price',expense : true },
+        'Customer Name', { name: 'Tax Price', expense: true }, { name: 'Transport Price', expense: true },
+        { name: 'Additional Price', expense: true },
         'Restrurant Name', { name: 'Note', multiline: true, nonMandatory: true },
         'Contact Details', { name: 'Address', multiline: true }]
     //manadatory to keep companyLogo as the first element in companyDetailsFields array
-    const companyDetailsFields = ['companyLogo','name', 'address', 'contact']
-    const fieldToIncludeOnBillHistory = ['Bill Code','Order Date','Customer Name'] //total price is automatically added...
+    const companyDetailsFields = ['companyLogo', 'name', 'address', 'contact']
+    const fieldToIncludeOnBillHistory = ['Bill Code', 'Order Date', 'Customer Name'] //total price is automatically added...
     const [fieldValues, setFieldValues] = useState({})
     const [snackBarMsg, setSnackbarMsg] = useState(undefined)
     const [companyDetails, setCompanyDetails] = useState({})
     const [isEditingCompanyDetails, setIsEditingCompanyDetails] = useState(false)
     const cartContext = useContext(CartContext)
-    const changeInputText = (key, value, isCompanyFields = false) => {
-        if (!isCompanyFields)
-            setFieldValues({ ...fieldValues, [key]: { 'value': value } })
-        else
-            setCompanyDetails({ ...companyDetails, [key]: { 'value': value } })
+    const changeInputText = (key, value) => {
+        setFieldValues({ ...fieldValues, [key]: { 'value': value } })
     }
 
     useEffect(() => {
+
+
         readCompanyDetailFromStore()
     }, [])
     const get = (key, fieldType = 'value') => {
@@ -58,7 +60,7 @@ export default function BillGenerateScreen({navigation}) {
 
             } else if ((fieldProperties.expense && isNaN(fieldValues[fieldName].value)) //check if expense field in correct numerical format
                 //or check against given regex validation expression given by preoprty 'validation'    
-            || (fieldProperties.validation && !fieldValues[fieldName].value.match(fieldProperties.validation))) {
+                || (fieldProperties.validation && !fieldValues[fieldName].value.match(fieldProperties.validation))) {
                 validationError = true
                 errorFields[fieldName] = { error: `Enter a valid value for ${fieldName}` }
             }
@@ -68,40 +70,89 @@ export default function BillGenerateScreen({navigation}) {
         }
         return validationError
     }
-    const generateBill = () => {
-      
-
+    const generateBill = async () => {
+        if(Object.keys(companyDetails).length != (companyDetailsFields.length)){
+            setSnackbarMsg('You should first give all company details first!')
+            return
+        }
+        if(cartContext.cart.length == 0){
+            setSnackbarMsg('Your cart is empty.Please add items to your cart')
+            return
+        }
+        if(cartContext.cartErrorCount > 0){
+            setSnackbarMsg('there are some conflicts in cart.Please resolve them first')
+            return
+        }
         if (validateFields())
             return
-        const primaryData = {}    
-        for(const fieldProperties of fields){
-            if(typeof fieldProperties == 'string' && fieldToIncludeOnBillHistory.includes(fieldProperties))
-                primaryData[helper.makeCodingFriendly(fieldProperties)] =  fieldValues[fieldProperties].value
-            else if(fieldToIncludeOnBillHistory.includes(fieldProperties.name)) 
-                primaryData[helper.makeCodingFriendly(fieldProperties.name)] = fieldProperties.value || fieldValues[fieldProperties.name].value 
+        const primaryData = {}
+        console.log('point A')
+        for (const fieldProperties of fields) {
+            if (typeof fieldProperties == 'string' && fieldToIncludeOnBillHistory.includes(fieldProperties))
+                primaryData[helper.makeCodingFriendly(fieldProperties)] = fieldValues[fieldProperties].value
+            else if (fieldToIncludeOnBillHistory.includes(fieldProperties.name))
+                primaryData[helper.makeCodingFriendly(fieldProperties.name)] = fieldProperties.value || fieldValues[fieldProperties.name].value
         }
-        
+
         const dataToSubmit = {
             ...primaryData,
-            totalPrice : calculateTotalPrice(),
-            cart : cartContext.cart.map(cartItem => {
+            totalPrice: calculateTotalPrice(),
+            cart: cartContext.cart.map(cartItem => {
                 return {
-                    name : cartItem.name,
-                    quantity : cartItem.quantity,
-                    price : cartItem.price,
-                    discount : cartItem.discount || 0
+                    name: cartItem.name,
+                    quantity: cartItem.quantity,
+                    discount: cartItem.discount || 0,
+                    price: cartItem.price,
+
                 }
             })
         }
+        console.log('point c')
+        const pdfData = {
+            primaryInfo: {
+                ...fields.reduce((obj, fieldProperties) => {
+                    console.log(fieldProperties)
+                    if (typeof fieldProperties == 'string')
+                        return { ...obj, [fieldProperties]: get(fieldProperties) }
+                    else
+                        return { ...obj, [fieldProperties.name]: fieldProperties.value || get(fieldProperties.name) }
+                }, {})
+                
+            },
+            'Total Price': dataToSubmit.totalPrice,
+            cart: dataToSubmit.cart,
+            companyDetails : companyDetails
+        }
+
+        const renderedTemplate = helper.mapToHTMLTemplate({
+            cart: helper.populateDataToHTML('cart',template,pdfData.cart),
+            primaryData: helper.populateDataToHTML('primaryData', template, Object.keys(pdfData.primaryInfo).map(key => {
+                return {
+                    'key': key,
+                    'value': pdfData.primaryInfo[key]
+                }
+            })),
+            totalPrice: pdfData['Total Price'],
+            contactDetail : helper.populateSingleHTMLSection('contactDetail',template,companyDetails)
+        }, template)
+        let pdfGeneratorOptions = {
+            html: renderedTemplate,
+            fileName: 'test2',
+            directory: 'Documents',
+        }
+        let file = await RNHTMLtoPDF.convert(pdfGeneratorOptions)
+        // console.log(file.filePath);
+        setSnackbarMsg('File Created successfully')
         // console.log(dataToSubmit)
-        reference.push(dataToSubmit,()=>{
-            setSnackbarMsg('Bill Created')
-        })
-        
+        // reference.push(dataToSubmit, () => {
+        //     setSnackbarMsg('Bill Created')
+        // })
+
     }
     const cartRenderer = (value) => {
         const item = value.item
         return <CustomCard>
+
             <View>
                 <View style={{ alignSelf: 'flex-start' }}>
                     <Text style={theme.foodTitle}>{item.name}</Text>
@@ -128,9 +179,8 @@ export default function BillGenerateScreen({navigation}) {
     const saveCompanyDetails = async () => {
         const allFields = companyDetailsFields
         //check if all fields are not undefined by chaining boolean conditions...
-        const isAllFieldsNonEmpty = allFields.reduce((previousVal,currentVal) => { return previousVal && currentVal },true)
-        if(!isAllFieldsNonEmpty){
-            console.log('some fields missing')
+        const isAllFieldsNonEmpty = allFields.reduce((previousVal, currentVal) => { return previousVal && currentVal }, true)
+        if (!isAllFieldsNonEmpty) {
             setSnackbarMsg('Some of organization details missing')
             return
         }
@@ -155,21 +205,21 @@ export default function BillGenerateScreen({navigation}) {
         }
         setCompanyDetails({ ...companyDetails, 'companyLogo': 'data:image/png;base64,' + result.assets[0].base64 })
     }
-   
-    const calculateTotalPrice = () =>{
-        const intialPrice  = cartContext.cart.reduce((totalPrice,cartItem)=>{
-            totalPrice += cartItem.price - (cartItem.discount || 0)
+
+    const calculateTotalPrice = () => {
+        const intialPrice = cartContext.cart.reduce((totalPrice, cartItem) => {
+            totalPrice += (cartItem.price * cartItem.quantity) - (cartItem.price * ((cartItem.discount || 0) / 100))
             return totalPrice
-        },0)
-        const utilityPrice = fields.reduce((totalUtitilityCost,fieldProperties)=>{
+        }, 0.0)
+        const utilityPrice = fields.reduce((totalUtitilityCost, fieldProperties) => {
             // console.log(fieldProperties)
-            if(fieldProperties.expense && fieldValues[fieldProperties.name]){ //check if the field is expense field
-                if(isNaN(fieldValues[fieldProperties.name].value))
+            if (fieldProperties.expense && fieldValues[fieldProperties.name]) { //check if the field is expense field
+                if (isNaN(fieldValues[fieldProperties.name].value))
                     return totalUtitilityCost // do not process if user had made a validation error...
-                return totalUtitilityCost + parseFloat(fieldValues[fieldProperties.name].value) 
-            }else
+                return totalUtitilityCost + parseFloat(fieldValues[fieldProperties.name].value)
+            } else
                 return totalUtitilityCost //do not make a change to price when reading non-expense field
-        },0)
+        }, 0)
         return intialPrice + utilityPrice
     }
     return <View style={styles.container}>
@@ -197,33 +247,33 @@ export default function BillGenerateScreen({navigation}) {
             }
             )}
             <View style={styles.companyDetails}>
-                <View style={{flex : 1}}>
+                <View style={{ flex: 1 }}>
                     <Text style={theme.foodTitle}>Total Amount</Text>
                     <View style={theme.underline} />
                     <Text style={theme.foodTitle}>{'Rs ' + calculateTotalPrice()}</Text>
-                    <CustomButton title="See cart" mode="contained" onPress={()=>{navigation.jumpTo('cart')}} />
+                    <CustomButton title="See cart" mode="contained" onPress={() => { navigation.jumpTo('cart') }} />
                 </View>
-                <View style={{flex : 1,marginLeft : 5,alignItems : 'stretch'}}>
+                <View style={{ flex: 1, marginLeft: 5, alignItems: 'stretch' }}>
                     {Object.keys(companyDetails).length == (companyDetailsFields.length) ? //check if all atrributes are present...
                         <>
-                            <View style={{alignItems : 'flex-end'}}>
-                            {companyDetails['companyLogo'] && <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150}
-                                style={styles.logoImage} />}
-                            <Text>{companyDetails.name}</Text>
-                            <Text>{companyDetails.address}</Text>
-                            <Text>{companyDetails.contact}</Text>
+                            <View style={{ alignItems: 'flex-end' }}>
+                                {companyDetails['companyLogo'] && <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150}
+                                    style={styles.logoImage} />}
+                                <Text>{companyDetails.name}</Text>
+                                <Text>{companyDetails.address}</Text>
+                                <Text>{companyDetails.contact}</Text>
                             </View>
                             <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} />
                         </> : <>
                             <Text>Some Company details are missing</Text>
-                            <CustomButton  title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} /></>
+                            <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} /></>
                     }
                 </View>
             </View>
 
-            <CustomButton buttonStyle={{marginTop : 7}} title="Generate" onPress={generateBill} mode="contained" />
+            <CustomButton buttonStyle={{ marginTop: 7 }} title="Generate" onPress={generateBill} mode="contained" />
 
-            
+
 
         </ScrollView>
         <Modal visible={isEditingCompanyDetails} transparent={true} >
@@ -231,18 +281,19 @@ export default function BillGenerateScreen({navigation}) {
 
             <View style={styles.companyDetailsModalContent}>
                 <Text style={{ color: 'black', fontSize: 25, textAlign: 'center' }}>Company Details</Text>
-                {companyDetails['companyLogo'] ? <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150} style={styles.logoImage} /> 
-                    : <Text style={{color : 'red',alignSelf : 'stretch', textAlign : 'center'}}>Missing Image</Text>
+                {companyDetails['companyLogo'] ? <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150} style={styles.logoImage} />
+                    : <Text style={{ color: 'red', alignSelf: 'stretch', textAlign: 'center' }}>Missing Image</Text>
                 }
                 {/* remove companyLogo  when rendering input fields in a copy array*/}
                 {companyDetailsFields.slice(1).map(inputField => <TextInput
+                    key={inputField}
                     label={inputField}
                     error={!companyDetails[inputField]}
                     errorText={!companyDetails[inputField] ? `${inputField} is missing` : undefined}
                     description={`Company ${inputField}`}
                     onChangeText={(text) => { changeCompanyDetails(inputField, text) }} />)}
                 <CustomButton title="Select Logo Image" onPress={selectImage} mode="outlined" />
-                <CustomButton buttonStyle={{ marginTop: 10 }} title="Save" onPress={saveCompanyDetails} mode="contained" />
+                <CustomButton buttonStyle={{ marginTop: 10 }} disabled={Object.keys(companyDetails).length < (companyDetailsFields.length)} title="Save" onPress={saveCompanyDetails} mode="contained" />
             </View>
         </Modal>
         <CustomSnackBar message={snackBarMsg} setMessage={setSnackbarMsg} />
@@ -253,15 +304,15 @@ const styles = StyleSheet.create({
         height: '100%',
         padding: 15
     },
-    logoImage : { 
+    logoImage: {
         height: 150,
         width: 150,
         borderRadius: 10,
-        alignSelf: 'center' 
+        alignSelf: 'center'
     },
     companyDetails: {
-        flexDirection : 'row',
-        justifyContent : 'space-between'
+        flexDirection: 'row',
+        justifyContent: 'space-between'
     },
     companyDetailsModalContent: {
         flex: 0,

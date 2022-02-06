@@ -13,11 +13,16 @@ import CartContext from "./CartContext"
 import BillGenerateScreen from "./BillGenerateScreen"
 import CustomButton from "./common/CustomButton"
 import auth from '@react-native-firebase/auth'
+import { useContext } from "react/cjs/react.development"
+import UserRoleContext from "./UserRoleContext"
 const Tab = createBottomTabNavigator();
-export default function AdminScreen({ navigation,route }) {
+export default function AdminScreen({ navigation }) {
+  
     // const [navigationIndex,setNavigationIndex] = useState(0)
     const [cart, setCart] = useState([])
+    const [cartErrorCount,setCartErrorCount] = useState(0)
     const [modalTabNavigator, setModalTabNavigator] = useState(false)
+    const isAdmin = useContext(UserRoleContext).isAdmin
     const signOut = async ()=>{
         await auth().signOut()
         navigation.replace('login')
@@ -28,8 +33,10 @@ export default function AdminScreen({ navigation,route }) {
         </View>
     }
     //More options navigation modal component...prompt when user press more tabBottomBarButtton
-    const CustomModal = () => {
-        
+    const CustomModal = ({isAdmin}) => {
+        let menuList = [['Show Bill History','paymentHistory']]
+        if(isAdmin)
+            menuList = menuList.concat([['Create Product', 'createFood'], ['Create Category', 'createCategory']])
         return <Modal animationType='fade' transparent={true} onRequestClose={() => { setModalTabNavigator(false) }} visible={!!modalTabNavigator} >
             <TouchableOpacity style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', flex: 1, marginBottom: -30 }} onPress={() => { setModalTabNavigator(false) }} />
             <View style={styles.modal}>
@@ -37,7 +44,7 @@ export default function AdminScreen({ navigation,route }) {
                 <Text style={{ color: 'black', fontSize: 20, fontWeight: 'bold' }}>More Options</Text>
                 <View style={{ alignSelf: 'flex-start' }}>
                     {
-                        [['Create Product', 'createFood'], ['Create Category', 'createCategory']].map(route => <TouchableWithoutFeedback key={route[0]} onPress={() => {
+                        menuList.map(route => <TouchableWithoutFeedback key={route[0]} onPress={() => {
                             modalTabNavigator.jumpTo(route[1])
                             setModalTabNavigator(false)
                         }}><View style={styles.navigationSubmenuItemRow}>
@@ -52,11 +59,15 @@ export default function AdminScreen({ navigation,route }) {
 
         </Modal>
     }
+    const getCartCount = () => {
+        return cart.map(cartItem => cartItem.quantity)
+            .reduce((totalCount,currrentItemCount)=> totalCount + currrentItemCount ,0).toString()
+    }
     const emptyBackground = () => null //dummy component as manadatory param...
     return <View >
 
         <View style={{ height: '100%' }}>
-            <CartContext.Provider value={{ cart: cart, setCart: setCart }}>
+            <CartContext.Provider value={{ cart: cart, setCart: setCart, cartErrorCount : cartErrorCount, setCartErrorCount : setCartErrorCount}}>
                 <Tab.Navigator
                     he
                     screenOptions={{
@@ -70,20 +81,20 @@ export default function AdminScreen({ navigation,route }) {
                         tabBarActiveBackgroundColor: theme.colors.primary
                     }} >
 
-                    {[['product', FoodBrowseScreen, 'cutlery'], ['Generate Bill', BillGenerateScreen, 'list-ul'], ['cart', CartScreen, 'shopping-basket'],['Payment History',PaymentHistory,'history'], ['createFood', ProductScreen], ['createCategory', CategoryScreen]].map((tab, index) =>
-                        tab.length == 2 ? <Tab.Screen key={index} name={tab[0]} component={tab[1]} options={{ tabBarButton: () => null }} /> :
-                            <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{ tabBarIcon: ({ color, size }) => <Icon name={tab[2]} color={color} size={size} /> }} />
+                    {[['product', FoodBrowseScreen, 'cutlery'], ['Generate Bill', BillGenerateScreen, 'print'], ['cart', CartScreen, 'shopping-basket'],['paymentHistory',PaymentHistory], ['createFood', ProductScreen], ['createCategory', CategoryScreen]].map((tab, index) =>
+                        tab.length == 2 ? <Tab.Screen key={index}  name={tab[0]} component={tab[1]} options={{ tabBarButton: () => null }} /> :
+                            <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{ ... tab[0] == 'cart' ? { tabBarBadge : getCartCount() } : {}, tabBarIcon: ({ color, size }) => <Icon name={tab[2]} color={color} size={size} /> }} />
                     )}
 
-                    { route.params.isAdmin && <Tab.Screen name="more" component={emptyBackground} title="More" listeners={({ navigation }) => ({
+                     <Tab.Screen name="more" component={emptyBackground} title="More" listeners={({ navigation }) => ({
                         tabPress: (e) => {
                             e.preventDefault();
                             setModalTabNavigator(navigation)
                         }
-                    })} options={{ tabBarIcon: ({ color, size }) => <Icon name='tv' color={color} size={size} /> }} /> }
+                    })} options={{ tabBarIcon: ({ color, size }) => <Icon name='bars' color={color} size={size} /> }} />
                 </Tab.Navigator>
             </CartContext.Provider>
-            <CustomModal />
+            <CustomModal isAdmin={ isAdmin}/>
         </View>
 
     </View>
@@ -113,6 +124,6 @@ const styles = StyleSheet.create({
     navigationSubmenuItemRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        width: '80%'
+        width: '95%'
     }
 })

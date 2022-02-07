@@ -3,12 +3,14 @@ import { StyleSheet, Text, View } from 'react-native'
 import Icon  from 'react-native-vector-icons/MaterialIcons'
 var timeout
 export default function CustomSnackBar({message,setMessage}){
+    const clearMessage = () => { setMessage(null) }
     if(timeout != null)
         clearTimeout(timeout)
-    timeout = setTimeout(()=>{setMessage(null)},2500)
+    timeout = setTimeout(clearMessage,2500)
+    
     return message != null?  <View style={style.snackBar}>
         <Text style={style.text}>{message}</Text>
-        <Icon color='white' size={20} name='close' style={{flex : 0}} onPress={()=>{setMessage(null)}}/>
+        <Icon color='white' size={20} name='close' style={{flex : 0}} onPress={clearMessage}/>
     </View> : null
 }
 const style = StyleSheet.create({

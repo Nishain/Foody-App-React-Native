@@ -22,7 +22,7 @@ export default {
     encloseTag : (tag,childArray) => {
         return childArray.map(child => `<${tag}>${child}</${tag}>`).join('') 
     },
-    populateDataToHTML : (sectionName,template,data)=>{
+    populateArrayToHTML : (sectionName,template,data)=>{
         const repeatTagLength = `{${sectionName}.repeat}`.length
         const repeatingTemplate = template.substring(template.indexOf(`{${sectionName}.repeat}`) + repeatTagLength , template.lastIndexOf(`{${sectionName}.repeat`))
         return data.map(item => Object.keys(item).reduce((processingTemplate,itemKey)=>processingTemplate.replace(`{${itemKey}}`,item[itemKey]),repeatingTemplate)).join("")

@@ -64,7 +64,7 @@ export default function CategoryScreen({navigation}) {
             </View></CustomCard>
 
     }
-
+    const getSearchFilteredData = () => searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Cart</Text>
         <CustomSearchBar placeholder='Search Items' onSearch={setSearchCriteria}/>
@@ -72,7 +72,7 @@ export default function CategoryScreen({navigation}) {
             {cartContext.cart.length == 0 ?
                 <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
                 
-                : <FlatList data={searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart} renderItem={renderItem} keyExtractor={(value) => cartContext.cart.indexOf(value)} />}
+                : <FlatList data={getSearchFilteredData()} renderItem={renderItem} keyExtractor={(_,index) => index} />}
         </SafeAreaView>
         <CustomButton buttonStyle={{margin : 10}} title="Generate Bill" mode="outlined" onPress={()=>{navigation.jumpTo('Generate Bill')}}/>
     </View>

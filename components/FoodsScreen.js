@@ -20,24 +20,15 @@ export default function FoodBrowseScreen({navigation}) {
     const isAdmin = useContext(UserRoleContext).isAdmin
     const [snackBarMsg,setSnackbarMsg] = useState(undefined)
     const addItem = (index,key) => {
-        // data[index].cartQuantity = (data[index].cartQuantity || 0) + 1
-        // setData([...data])
+  
         const cartItem = cartContext.cart.find(itm => key == itm.key)
         if(cartItem)
             cartItem.quantity = (cartItem.quantity || 0) + 1
         else
-        //removing the cartQuantity variable and replace with quantity attribute...
             cartContext.cart.push({...data[index],cartQuantity : undefined,quantity : 1})
         cartContext.setCart([...cartContext.cart])    
     }   
-    // const mergeByKey = (data,cartData)=>{
-    //     for(const cartItem of cartData){
-    //         let matchingItem = data.find(dbItm => dbItm.key == cartItem.key)
-    //         if(matchingItem)
-    //             matchingItem.cartQuantity = cartItem.quantity
-    //     }
-    //     return data
-    // }
+   
     useEffect(()=>{
         
         reference.on('value',(snapshot)=>{
@@ -46,7 +37,6 @@ export default function FoodBrowseScreen({navigation}) {
             for(const keyID in dbData){
                 newData.push({...dbData[keyID],key : keyID})
             }
-            // console.log(newData)
             setData(newData)
         })
     },[])
@@ -100,11 +90,12 @@ export default function FoodBrowseScreen({navigation}) {
             </View>
         </CustomCard>
     }
+    const getSearchFilteredData = () => searchCriteria ? data.filter(val=>val.name.toLowerCase().includes(searchCriteria.toLowerCase())) : data
     // const mergedData = mergeByKey(data,cartContext.cart)
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Browse Food</Text>
-        <CustomSearchBar placeholder='Search item' onSearch={(searchText)=>{setSearchCriteria(searchText)}}/>
-        <FlatList data={searchCriteria ? data.filter(val=>val.name.toLowerCase().includes(searchCriteria.toLowerCase())) : data} renderItem={renderItem} />
+        <CustomSearchBar placeholder='Search item' onSearch={setSearchCriteria}/>
+        <FlatList data={getSearchFilteredData()} renderItem={renderItem} />
         <CustomSnackBar message={snackBarMsg} setMessage={setSnackbarMsg}/>
     </View>
 }

@@ -3,16 +3,17 @@ import { StyleSheet, Text, View } from "react-native";
 import theme from "./theme";
 import Icon from 'react-native-vector-icons/MaterialIcons'
 const KeyValueText = ({ qtyEditable,qtyChangeHandler, description, value, isVerical }) => {
-    
+    const add = () => { qtyChangeHandler('add') }
+    const remove = () => { qtyChangeHandler('remove') }
     return <View style={{ flexDirection: isVerical ? 'column' : 'row' }}>
         
         <Text style={{ color: theme.colors.primary, fontWeight: 'bold' }}>{description}{' '}</Text>
         
         {qtyEditable ?
             <View style={{ flexDirection: 'row' }}>
-                <Icon style={styles.roundButton} name={'remove'} onPress={()=>{qtyChangeHandler('remove')}} color={'white'} size={15} />
+                <Icon style={styles.roundButton} name={'remove'} onPress={()=>{remove}} color={'white'} size={15} />
                 <Text style={isVerical ? { marginLeft: 10 } : {}}>{value}</Text>
-                <Icon style={styles.roundButton} name={'add'} onPress={()=>{qtyChangeHandler('add')}} size={15} color={'white'} />
+                <Icon style={styles.roundButton} name={'add'} onPress={()=>{add}} size={15} color={'white'} />
             </View> :
             <Text style={isVerical ? { marginLeft: 10 } : {}}>{value}</Text>
         }

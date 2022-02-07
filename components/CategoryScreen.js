@@ -59,7 +59,7 @@ export default function CategoryScreen(){
         <View style={styles.addRow}>
             <TextInput onChangeText={setCategoryName} placeholder="Add Category" containerStyle={{flex : 1}}/><CustomButton buttonStyle={{flex : 0,marginStart : 10}} mode="contained" title="Add" onPress={addCategory} />
         </View>
-        <FlatList style={styles.flatList} data={data} renderItem={renderItem} keyExtractor={(value)=>data.indexOf(value)}/>
+        <FlatList style={styles.flatList} data={data} renderItem={renderItem} keyExtractor={(_,index)=>index}/>
         <CustomSnackBar setMessage={setSnackBarMessage} message={snackBarMessage}/>
     </View>
 }

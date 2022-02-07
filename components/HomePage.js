@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react"
+import React, { useMemo, useState } from "react"
 import Icon from "react-native-vector-icons/FontAwesome"
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons'
 import CategoryScreen from "./CategoryScreen"
@@ -25,13 +25,13 @@ export default function AdminScreen({ navigation }) {
     const [modalTabNavigator, setModalTabNavigator] = useState(false)
     const isAdmin = useContext(UserRoleContext).isAdmin
     const tabDetails = useMemo(() => [
-        ['product', FoodBrowseScreen, 'cutlery',[isAdmin]],
-        ['Generate Bill', BillGenerateScreen, 'print',[cart]],
-        ['cart', CartScreen, 'shopping-basket',[cart]],
-        ['paymentHistory',PaymentHistory,[NEVER_CHANGE]],
-        ['createFood', ProductScreen,[NEVER_CHANGE]],
-        ['createCategory', CategoryScreen,[NEVER_CHANGE]]
-    ],[])
+        ['product', FoodBrowseScreen, 'cutlery'],
+        ['Generate Bill', BillGenerateScreen, 'print'],
+        ['cart', CartScreen, 'shopping-basket'],
+        ['paymentHistory',PaymentHistory],
+        ['createFood', ProductScreen],
+        ['createCategory', CategoryScreen]
+    ])
     const signOut = async ()=>{
         await auth().signOut()
         navigation.replace('login')
@@ -42,25 +42,21 @@ export default function AdminScreen({ navigation }) {
         </View>
     }
     //More options navigation modal component...prompt when user press more tabBottomBarButtton
-    const customModal = useMemo(() => {
-        let menuList = [
-            ['Show Bill History',
-            'paymentHistory']
-        ]
-        if(isAdmin)
-            menuList = menuList
-            .concat([
-                ['Create Product', 'createFood'],
-                ['Create Category', 'createCategory']
-            ])
-        return <Modal animationType='fade' transparent={true} onRequestClose={() => { setModalTabNavigator(false) }} visible={!!modalTabNavigator} >
+    const customModal = () => {
+        return <Modal animationType='slide' transparent={true} onRequestClose={() => { setModalTabNavigator(false) }} visible={!!modalTabNavigator} >
             <TouchableOpacity style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', flex: 1, marginBottom: -30 }} onPress={() => { setModalTabNavigator(false) }} />
-            <View style={styles.modal}>
+            {useMemo(()=> {
+                console.log('modal is recreated...')
+            return <View style={styles.modal}>
                 <MaterialIcon name='menu-open' size={50} color='grey' style={{ marginTop: -20 }} />
                 <Text style={{ color: 'black', fontSize: 20, fontWeight: 'bold' }}>More Options</Text>
                 <View style={{ alignSelf: 'flex-start' }}>
                     {
-                        menuList.map(route => <TouchableWithoutFeedback key={route[0]} onPress={() => {
+                        ([['Show Bill History',
+                        'paymentHistory']].concat(isAdmin ? [
+                            ['Create Product', 'createFood'],
+                            ['Create Category', 'createCategory']
+                        ] : [])).map(route => <TouchableWithoutFeedback key={route[0]} onPress={() => {
                             modalTabNavigator.jumpTo(route[1])
                             setModalTabNavigator(false)
                         }}><View style={styles.navigationSubmenuItemRow}>
@@ -70,24 +66,27 @@ export default function AdminScreen({ navigation }) {
                             </View></TouchableWithoutFeedback>)
                     }
                 </View>
-            </View>
-        </Modal>
-    },[isAdmin])
+            </View>},[isAdmin,modalTabNavigator])}
+            
+         </Modal>
+    }
     const getCartCount = () => {
-        return cart.map(cartItem => cartItem.quantity)
-            .reduce((totalCount,currrentItemCount)=> totalCount + currrentItemCount ,0).toString()
+        const cartCount = cart.map(cartItem => cartItem.quantity)
+            .reduce((totalCount,currrentItemCount)=> totalCount + currrentItemCount ,0)
+        return cartCount == 0 ? undefined : cartCount    
     }
     const emptyBackground = () => null //dummy component as manadatory param...
-    const generateDynamicTabs = ()=> tabDetails.map((tab, index) =>
+    const generateDynamicTabs = useMemo(()=>tabDetails.map((tab, index) =>
     //re-render tab components only if dependencies related to specific component changes....
-     useMemo(() => tab.length == 2 ? <Tab.Screen key={index}  name={tab[0]} component={tab[1]} options={{ tabBarButton: () => null }} />
-      : <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{ ... tab[0] == 'cart' ? { tabBarBadge : getCartCount() } : {}, tabBarIcon: ({ color, size }) => <Icon name={tab[2]} color={color} size={size} /> }} />,)
-    )
+     tab.length == 2 ? <Tab.Screen key={index}  name={tab[0]} component={tab[1]} options={{ tabBarButton: () => null }} />
+      : <Tab.Screen key={index} name={tab[0]} component={tab[1]} title={tab[0]} options={{ ... tab[0] == 'cart' ? { tabBarBadge : getCartCount()  } : {}, tabBarIcon: ({ color, size }) => <Icon name={tab[2]} color={color} size={size} /> }} />),[cart])
+    
 
-    const extraTabPressListener = ({ navigation }) => ({
+    const extraTabPressListener = ({ navigation : tabNavigationProps }) => ({
+        
         tabPress: (e) => {
             e.preventDefault();
-            setModalTabNavigator(navigation)
+            setModalTabNavigator(tabNavigationProps)
         }
     })
     return <View >
@@ -105,9 +104,7 @@ export default function AdminScreen({ navigation }) {
                         tabBarLabelStyle: { fontSize: 15 },
                         tabBarActiveBackgroundColor: theme.colors.primary
                     }} >
-
-                    {generateDynamicTabs()}
-
+                    {generateDynamicTabs}
                      <Tab.Screen name="more" component={emptyBackground} title="More" listeners={extraTabPressListener} options={{ tabBarIcon: ({ color, size }) => <Icon name='bars' color={color} size={size} /> }} />
                 </Tab.Navigator>
             </CartContext.Provider>

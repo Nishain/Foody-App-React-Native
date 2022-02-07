@@ -11,9 +11,9 @@ const KeyValueText = ({ qtyEditable,qtyChangeHandler, description, value, isVeri
         
         {qtyEditable ?
             <View style={{ flexDirection: 'row' }}>
-                <Icon style={styles.roundButton} name={'remove'} onPress={()=>{remove}} color={'white'} size={15} />
+                <Icon style={styles.roundButton} name={'remove'} onPress={remove} color={'white'} size={15} />
                 <Text style={isVerical ? { marginLeft: 10 } : {}}>{value}</Text>
-                <Icon style={styles.roundButton} name={'add'} onPress={()=>{add}} size={15} color={'white'} />
+                <Icon style={styles.roundButton} name={'add'} onPress={add} size={15} color={'white'} />
             </View> :
             <Text style={isVerical ? { marginLeft: 10 } : {}}>{value}</Text>
         }

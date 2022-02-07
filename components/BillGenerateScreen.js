@@ -14,6 +14,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import database from '@react-native-firebase/database'
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import template from './assets/template'
+import { useMemo } from "react/cjs/react.development";
+import TestObject from "./common/TestObject";
 // import template from './template.html'
 export default function BillGenerateScreen({ navigation }) {
     const reference = database().ref('/history/')
@@ -91,10 +93,11 @@ export default function BillGenerateScreen({ navigation }) {
             else if (fieldToIncludeOnBillHistory.includes(fieldProperties.name))
                 primaryData[helper.makeCodingFriendly(fieldProperties.name)] = fieldProperties.value || fieldValues[fieldProperties.name].value
         }
-
+        const purchaseDateTime = new Date().toUTCString()
         const dataToSubmit = {
             ...primaryData,
             totalPrice: calculateTotalPrice(),
+            purchasedTime : purchaseDateTime,
             cart: cartContext.cart.map(cartItem => {
                 return {
                     name: cartItem.name,
@@ -113,8 +116,8 @@ export default function BillGenerateScreen({ navigation }) {
                         return { ...obj, [fieldProperties]: get(fieldProperties) }
                     else
                         return { ...obj, [fieldProperties.name]: fieldProperties.value || get(fieldProperties.name) }
-                }, {})
-
+                }, {}),
+                purchasedTime : purchaseDateTime,
             },
             'Total Price': dataToSubmit.totalPrice,
             cart: dataToSubmit.cart,
@@ -186,7 +189,7 @@ export default function BillGenerateScreen({ navigation }) {
         setCompanyDetails({ ...companyDetails, 'companyLogo': 'data:image/png;base64,' + result.assets[0].base64 })
     }
 
-    const calculateTotalPrice = () => {
+    const calculateTotalPrice = useMemo(()=>{
         const intialPrice = cartContext.cart.reduce((totalPrice, cartItem) => {
             totalPrice += (cartItem.price * cartItem.quantity) - (cartItem.price * ((cartItem.discount || 0) / 100))
             return totalPrice
@@ -201,11 +204,12 @@ export default function BillGenerateScreen({ navigation }) {
                 return totalUtitilityCost //do not make a change to price when reading non-expense field
         }, 0)
         return intialPrice + utilityPrice
-    }
-    const getTotalDiscountedAmount = () => 
+    },[cartContext.cart,fieldValues])
+
+    const getTotalDiscountedAmount = useMemo(() => 
              cartContext.cart.reduce((totalValue,cartItem) => totalValue + (cartItem.price * ((cartItem.discount || 0) / 100) )
-            ,0)
-    const generatePrimaryInfoInput = () => fields.map((fieldParam, index) => {
+            ,0),[cartContext.cart])
+    const generatePrimaryInfoInput = useMemo(()=>fields.map((fieldParam, index) => {
         const field = typeof fieldParam == 'object' ? fieldParam.name : fieldParam
         return <TextInput
             key={index}
@@ -221,12 +225,12 @@ export default function BillGenerateScreen({ navigation }) {
             error={get(field, 'error')}
             errorText={get(field, 'error') || ''}
         />
-    })
+    }),[fieldValues])
 
     const navigateToCart = () => { navigation.jumpTo('cart') }
     const isAllCompanyDetailsProvided = () => Object.keys(companyDetails).length == (companyDetailsFields.length)
     //check if all atrributes are present...
-    const generateCompanyDetails = () => isAllCompanyDetailsProvided ? <>
+    const generateCompanyDetails = useMemo(()=>isAllCompanyDetailsProvided ? <>
         <View style={{ alignItems: 'flex-end' }}>
             {companyDetails['companyLogo'] && <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150}
                 style={styles.logoImage} />}
@@ -237,32 +241,36 @@ export default function BillGenerateScreen({ navigation }) {
         <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} />
     </> : <>
         <Text>Some Company details are missing</Text>
-        <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} /></>
+        <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} /></>,[companyDetails])
     const CompanyLogoInput = () => 
         companyDetails['companyLogo'] ? <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150} style={styles.logoImage} />
         : <Text style={{ color: 'red', alignSelf: 'stretch', textAlign: 'center' }}>Missing Image</Text>
     
-    const CompanyDetailsInputForm = () => companyDetailsFields.slice(1).map(inputField => <TextInput
+    const CompanyDetailsInputForm = useMemo(()=>
+        companyDetailsFields.slice(1).map(inputField => <TextInput
         key={inputField}
         label={inputField}
+        defaultValue={companyDetails[inputField]}
         error={!companyDetails[inputField]}
         errorText={!companyDetails[inputField] ? `${inputField} is missing` : undefined}
         description={`Company ${inputField}`}
         onChangeText={(text) => { changeCompanyDetails(inputField, text) }} />)
+    ,[companyDetails])
     //main render function.....    
+    
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Bill Generate</Text>
         <ScrollView>
-            {generatePrimaryInfoInput()}
+            {generatePrimaryInfoInput}
             <View style={styles.companyDetails}>
                 <View style={{ flex: 1 }}>
                     <Text style={theme.foodTitle}>Total Amount</Text>
                     <View style={theme.underline} />
-                    <Text style={theme.foodTitle}>{`Rs ${calculateTotalPrice()} with discount ${getTotalDiscountedAmount()}`}</Text>
+                    <Text style={theme.foodTitle}>{`Rs ${calculateTotalPrice} with discount ${getTotalDiscountedAmount}`}</Text>
                     <CustomButton title="See cart" mode="contained" onPress={navigateToCart} />
                 </View>
                 <View style={{ flex: 1, marginLeft: 5, alignItems: 'stretch' }}>
-                    {generateCompanyDetails()}
+                    {generateCompanyDetails}
                 </View>
             </View>
 
@@ -278,7 +286,7 @@ export default function BillGenerateScreen({ navigation }) {
                 <Text style={{ color: 'black', fontSize: 25, textAlign: 'center' }}>Company Details</Text>
                 <CompanyLogoInput />
                 {/* remove companyLogo  when rendering input fields in a copy array*/}
-                <CompanyDetailsInputForm />
+                {CompanyDetailsInputForm}
                 <CustomButton title="Select Logo Image" onPress={selectImage} mode="outlined" />
                 <CustomButton buttonStyle={{ marginTop: 10 }} disabled={Object.keys(companyDetails).length < (companyDetailsFields.length)} title="Save" onPress={saveCompanyDetails} mode="contained" />
             </View>

@@ -49,7 +49,6 @@ export default function CategoryScreen(){
             for(const category in categoryDBList){
                 newData.push({key : category, name : categoryDBList[category]})
             }
-            console.log(newData)
             setData(newData)
         })
     },[])

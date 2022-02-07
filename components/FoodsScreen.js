@@ -11,6 +11,7 @@ import CartContext from "./CartContext"
 import Icon from 'react-native-vector-icons/FontAwesome'
 import CustomSnackBar from "./common/CustomSnackBar"
 import UserRoleContext from "./UserRoleContext"
+import { useMemo } from "react/cjs/react.development"
 
 export default function FoodBrowseScreen({navigation}) {
     const reference = database().ref('/food/')
@@ -90,7 +91,8 @@ export default function FoodBrowseScreen({navigation}) {
             </View>
         </CustomCard>
     }
-    const getSearchFilteredData = () => searchCriteria ? data.filter(val=>val.name.toLowerCase().includes(searchCriteria.toLowerCase())) : data
+    //avoid re-rendering data if only snackBar message is updated...
+    const getSearchFilteredData = () => useMemo(()=>searchCriteria ? data.filter(val=>val.name.toLowerCase().includes(searchCriteria.toLowerCase())) : data,[searchCriteria,data])
     // const mergedData = mergeByKey(data,cartContext.cart)
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Browse Food</Text>

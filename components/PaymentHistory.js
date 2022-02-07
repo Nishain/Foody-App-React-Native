@@ -7,6 +7,7 @@ import KeyValueText from "./common/KeyValueText";
 import CustomCard from "./common/CustomCard";
 import DatePicker from 'react-native-date-picker'
 import Icon from 'react-native-vector-icons/FontAwesome'
+import { useMemo } from "react/cjs/react.development";
 export default function PaymentHistory(){
     const reference = database().ref('history')
     const [data,setData] = useState([])
@@ -15,7 +16,8 @@ export default function PaymentHistory(){
     
     const setStartDate = (date)=>{
         openAndCloseStartDateModal(false)
-        setFilterDate({start : date, end : filterDate.end})
+        const timeTrimmedDate = new Date(`${date.toISOString().split('T')[0]}T00:00:00`)
+        setFilterDate({start : timeTrimmedDate, end : filterDate.end})
         
     }
 
@@ -26,18 +28,16 @@ export default function PaymentHistory(){
     }
     const openAndCloseStartDateModal = (mode) => { setDateModalVisibility({start : mode , end : dateModalVisibility.end}) }
     const openAndCloseEndDateModal = (mode)=> { setDateModalVisibility({end : mode , start : dateModalVisibility.start}) }
-    const getDateFilteredData = () => data.filter(billItem => compareDate(billItem['orderDate']))
+    const getDateFilteredData = () => useMemo(()=>data.filter(billItem => compareDate(billItem['orderDate'])),[data,filterDate])
     const compareDate = (dateString) => {
         const paramDate = new Date(dateString).getTime()
         const beforeCondition = filterDate.start ? paramDate >= filterDate.start.getTime() : true
         const afterCondition = filterDate.end ? paramDate <= filterDate.end.getTime() : true
-        console.log(`beforeCondition : ${beforeCondition} afterCondition : ${afterCondition}`)
         return beforeCondition && afterCondition
     }
     useEffect(()=>{
         reference.on('value',(snapshot)=>{
             const dbHistory = snapshot.val()
-            console.log('refreshed')
             if(dbHistory)
                 setData(Object.values(dbHistory))
         })
@@ -79,7 +79,7 @@ export default function PaymentHistory(){
             <Text style={renderDateInputStyle(filterDate.start)}  onPress={()=>{openAndCloseStartDateModal(true)}} >{filterDate.start ? filterDate.start.toDateString() : 'Select Start Date'}</Text>
             <Text style={renderDateInputStyle(filterDate.end)}  onPress={()=>{openAndCloseEndDateModal(true)}} >{filterDate.end ? filterDate.end.toDateString() : 'Select End Date'}</Text>
             <Icon name="remove" style={styles.clearFilterButton} size={20} color={'white'} onPress={clearFilter}/>
-            <DatePicker modal cancelText="Delete Yo" open={dateModalVisibility.start} date={filterDate.start || new Date()}  mode="date"  title="Select start date" onConfirm={setStartDate} onCancel={()=>{openAndCloseStartDateModal(false)}} />
+            <DatePicker modal open={dateModalVisibility.start} date={filterDate.start || new Date()}  mode="date"  title="Select start date" onConfirm={setStartDate} onCancel={()=>{openAndCloseStartDateModal(false)}} />
             <DatePicker modal open={dateModalVisibility.end} date={filterDate.end || new Date()}  mode="date" title="Select end date" onConfirm={setEndDate} onCancel={()=>{openAndCloseEndDateModal(false)}} />
         </View>
         <FlatList data={getDateFilteredData()} renderItem={renderItem} keyExtractor={(_,index)=>index}/>

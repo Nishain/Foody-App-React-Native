@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState,useCallback,useMemo } from "react";
 import { Button, FlatList, ScrollView, StyleSheet, Text, View } from "react-native";
 import CustomSearchBar from "./common/SearchBar";
 import theme from "./common/theme";
@@ -42,7 +42,8 @@ export default function CategoryScreen({navigation}) {
         }
         cartContext.setCart([...cartContext.cart])    
     }
-    const renderItem = (value) => {
+    const navigateToGenerateBill = ()=>{ navigation.jumpTo('Generate Bill') }
+    const renderItem = useCallback((value) => {
         const item = value.item
         return <CustomCard>
             <View>
@@ -63,8 +64,8 @@ export default function CategoryScreen({navigation}) {
                 <Icon onPress={() => { removeItem(value.index) }} name='trash-o' size={25} color={'red'} />
             </View></CustomCard>
 
-    }
-    const getSearchFilteredData = () => searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart
+    },[])
+    const getSearchFilteredData = useMemo(() => searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart,[searchCriteria,cartContext.cart])
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Cart</Text>
         <CustomSearchBar placeholder='Search Items' onSearch={setSearchCriteria}/>
@@ -72,9 +73,9 @@ export default function CategoryScreen({navigation}) {
             {cartContext.cart.length == 0 ?
                 <Text style={styles.cartEmptyLabel}>Your Cart is empty</Text>
                 
-                : <FlatList data={getSearchFilteredData()} renderItem={renderItem} keyExtractor={(_,index) => index} />}
+                : <FlatList data={getSearchFilteredData} renderItem={renderItem} keyExtractor={(_,index) => index} />}
         </SafeAreaView>
-        <CustomButton buttonStyle={{margin : 10}} title="Generate Bill" mode="outlined" onPress={()=>{navigation.jumpTo('Generate Bill')}}/>
+        <CustomButton buttonStyle={{margin : 10}} title="Generate Bill" mode="outlined" onPress={navigateToGenerateBill}/>
     </View>
 }
 const styles = StyleSheet.create({

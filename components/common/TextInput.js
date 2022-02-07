@@ -8,7 +8,7 @@ export default function TextInput({ errorText, description, ...props }) {
   const [isFocused,setIsFocused] = useState(false)
     return (
       <View style={{...props.containerStyle,...styles.container}}>
-        {description && !errorText ? (
+        {description ? (
           <Text style={styles.description}>{description}</Text>
         ) : null}
         {/* <Input

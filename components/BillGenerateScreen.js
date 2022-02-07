@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { StyleSheet, View, Text, Button, Image, ScrollView, FlatList, Modal, TouchableWithoutFeedback, TouchableOpacity } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CartContext from "./CartContext";
+import CartContext from "./contexts/CartContext";
 import CustomButton from "./common/CustomButton";
 import CustomCard from "./common/CustomCard";
 import CustomSnackBar from "./common/CustomSnackBar";

@@ -1,17 +1,13 @@
 import React, { useState } from 'react'
 import { NavigationContainer } from '@react-navigation/native';
-import { Provider, Text } from 'react-native-paper';
 
 
 import LoginScreen from './components/LoginScreen';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import HomeScreen from './components/HomePage';
-import { Modal, View } from 'react-native';
-import { theme } from './components/common/theme';
 import auth from '@react-native-firebase/auth'
 import database from '@react-native-firebase/database'
-import UserRoleContext from './components/UserRoleContext';
+import UserRoleContext from './components/contexts/UserRoleContext';
 const Stack = createNativeStackNavigator()
 export default App = () => {
     const currentUser = auth().currentUser

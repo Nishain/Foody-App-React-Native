@@ -7,10 +7,10 @@ import KeyValueText from "./common/KeyValueText"
 import CustomSearchBar from "./common/SearchBar"
 import theme from "./common/theme"
 import database from '@react-native-firebase/database';
-import CartContext from "./CartContext"
+import CartContext from "./contexts/CartContext"
 import Icon from 'react-native-vector-icons/FontAwesome'
 import CustomSnackBar from "./common/CustomSnackBar"
-import UserRoleContext from "./UserRoleContext"
+import UserRoleContext from "./contexts/UserRoleContext"
 import { useMemo } from "react/cjs/react.development"
 
 export default function FoodBrowseScreen({navigation}) {

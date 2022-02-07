@@ -9,7 +9,7 @@ import theme from './common/theme'
 import CustomSnackBar from './common/CustomSnackBar'
 import database from '@react-native-firebase/database'
 import CustomButton from './common/CustomButton'
-import UserRoleContext from './UserRoleContext'
+import UserRoleContext from './contexts/UserRoleContext'
 import { useContext } from 'react/cjs/react.development'
 
 const EMAIL = 'email', PASSWORD = 'password', CONFIRM_PASSWORD = 'confirmPassword'

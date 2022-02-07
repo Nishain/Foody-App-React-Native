@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/FontAwesome'
 import KeyValueText from "./common/KeyValueText";
 import CustomCard from "./common/CustomCard";
 import { SafeAreaView } from "react-native-safe-area-context";
-import CartContext from "./CartContext";
+import CartContext from "./contexts/CartContext";
 import TextInput from "./common/TextInput";
 import CustomButton from "./common/CustomButton";
 export default function CategoryScreen({navigation}) {
@@ -26,7 +26,6 @@ export default function CategoryScreen({navigation}) {
     }
     const changeDiscountAmount = (event,item) => {
         const text = event.nativeEvent.text
-        console.log(text)
         if(text == "")
             item.discount = undefined
         else{
@@ -43,7 +42,7 @@ export default function CategoryScreen({navigation}) {
         cartContext.setCart([...cartContext.cart])    
     }
     const navigateToGenerateBill = ()=>{ navigation.jumpTo('Generate Bill') }
-    const renderItem = useCallback((value) => {
+    const renderItem = (value) => {
         const item = value.item
         return <CustomCard>
             <View>
@@ -64,7 +63,7 @@ export default function CategoryScreen({navigation}) {
                 <Icon onPress={() => { removeItem(value.index) }} name='trash-o' size={25} color={'red'} />
             </View></CustomCard>
 
-    },[])
+    }
     const getSearchFilteredData = useMemo(() => searchCriteria ? cartContext.cart.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : cartContext.cart,[searchCriteria,cartContext.cart])
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Cart</Text>

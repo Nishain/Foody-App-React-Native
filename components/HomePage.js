@@ -9,12 +9,12 @@ import theme from "./common/theme"
 import { Button, Modal, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native"
 import FoodBrowseScreen from "./FoodsScreen"
 import PaymentHistory from "./PaymentHistory"
-import CartContext from "./CartContext"
+import CartContext from "./contexts/CartContext"
 import BillGenerateScreen from "./BillGenerateScreen"
 import CustomButton from "./common/CustomButton"
 import auth from '@react-native-firebase/auth'
 import { useContext } from "react/cjs/react.development"
-import UserRoleContext from "./UserRoleContext"
+import UserRoleContext from "./contexts/UserRoleContext"
 const Tab = createBottomTabNavigator();
 const NEVER_CHANGE = 'never_change'
 export default function AdminScreen({ navigation }) {

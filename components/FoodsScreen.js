@@ -24,7 +24,8 @@ export default function FoodBrowseScreen({navigation}) {
   
         const cartItem = cartContext.cart.find(itm => key == itm.key)
         if(cartItem)
-            cartItem.quantity = (cartItem.quantity || 0) + 1
+            cartItem.quantity = (cartItem.quantity || 0) + 1 //if for the first time then quantity incremented from 0 if 
+            //quantity undefined
         else
             cartContext.cart.push({...data[index],cartQuantity : undefined,quantity : 1})
         cartContext.setCart([...cartContext.cart])    
@@ -79,21 +80,22 @@ export default function FoodBrowseScreen({navigation}) {
                 <View style={styles.chipContainer}>
                     {item['categories'].map(category=><Text key={category} style={styles.chip}>{category}</Text>)}
                 </View>
-                <CustomButton onPress={()=>{addItem(value.index,item.key)}} title="add To Cart" mode="contained" >
+                <CustomButton onPress={()=>{addItem(value.index,item.key)}} title="add To Cart" mode="contained" buttonStyle={{alignSelf :'flex-start'}} >
                     {cartItem && <View style={styles.cartCountCaption}>
                         <Text style={{color : theme.colors.primary}}>{cartItem.quantity}</Text>
                     </View>}
                 </CustomButton>
             </View>
-            <View style={styles.itemIconContainer}>
-                {isAdmin && <Icon name="edit" size={25} color={theme.colors.primary} onPress={()=>{updateItem(item)}}/>}
+            { isAdmin &&<View style={styles.itemIconContainer}>
+                <Icon name="edit" size={25} color={theme.colors.primary} onPress={()=>{updateItem(item)}}/>
                 <Icon style={styles.deleteButton} onPress={() => { requestDeleteConformation(item.key,item.name) }} name='trash-o' size={25} color={'red'} />
-            </View>
+                
+            </View>}
         </CustomCard>
     }
     //avoid re-rendering data if only snackBar message is updated...
     const getSearchFilteredData = () => useMemo(()=>searchCriteria ? data.filter(val=>val.name.toLowerCase().includes(searchCriteria.toLowerCase())) : data,[searchCriteria,data])
-    // const mergedData = mergeByKey(data,cartContext.cart)
+
     return <View style={styles.container}>
         <Text style={theme.headerStyle}>Browse Food</Text>
         <CustomSearchBar placeholder='Search item' onSearch={setSearchCriteria}/>

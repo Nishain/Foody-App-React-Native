@@ -1,6 +1,5 @@
 import React,{useState} from 'react'
 import { View, StyleSheet, Text,TextInput as NativeInput } from 'react-native'
-import { TextInput as Input } from 'react-native-paper'
 import theme from './theme'
 
 export default function TextInput({ errorText, description, ...props }) {

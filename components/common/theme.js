@@ -23,6 +23,10 @@ const theme = {
   foodTitle: {
     fontSize: 20,
     fontWeight: 'bold'
+  },
+  darkFont : {
+    color : 'black',
+    fontWeight : 'bold'
   }
 }
 export default theme

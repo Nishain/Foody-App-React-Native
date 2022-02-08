@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { FlatList, View,SafeAreaView, StyleSheet, Text } from 'react-native'
 import CustomButton from './common/CustomButton'
@@ -14,6 +14,7 @@ export default function CategoryScreen(){
     const [data,setData] = useState([])
     const [categoryName,setCategoryName] = useState('')
     const [snackBarMessage,setSnackBarMessage] = useState(null)
+    const [searchCriteria,setSearchCriteria] = useState(undefined)
     const removeElement = (elementIndex)=>{
         reference.child(data[elementIndex].key).remove(()=>{
             setSnackBarMessage('successfully removed category')
@@ -34,10 +35,9 @@ export default function CategoryScreen(){
             return
         }
 
-        const newGeneratedKey = reference.push(categoryName,()=>{
+        reference.push(categoryName,()=>{
             setSnackBarMessage('added Category Successfully')
-        }).key
-        console.log(`new key ${newGeneratedKey}`)
+        })
         // var newData = [...data]
         // newData.push({key : newGeneratedKey,name : categoryName})
         // setData(newData)
@@ -52,13 +52,14 @@ export default function CategoryScreen(){
             setData(newData)
         })
     },[])
+    const getSearchFilteredData = ()=> useMemo(()=>searchCriteria ? data.filter(item => item.name.toLowerCase().includes(searchCriteria.toLowerCase())) : data,[searchCriteria,data])
     return <View style={styles.container}>
         <Text style={styles.header}>Categories</Text>
-        <CustomSearchBar placeholder="Search categories" />
+        <CustomSearchBar placeholder="Search categories" onSearch={setSearchCriteria} />
         <View style={styles.addRow}>
             <TextInput onChangeText={setCategoryName} placeholder="Add Category" containerStyle={{flex : 1}}/><CustomButton buttonStyle={{flex : 0,marginStart : 10}} mode="contained" title="Add" onPress={addCategory} />
         </View>
-        <FlatList style={styles.flatList} data={data} renderItem={renderItem} keyExtractor={(_,index)=>index}/>
+        <FlatList style={styles.flatList} data={getSearchFilteredData()} renderItem={renderItem} keyExtractor={(_,index)=>index}/>
         <CustomSnackBar setMessage={setSnackBarMessage} message={snackBarMessage}/>
     </View>
 }

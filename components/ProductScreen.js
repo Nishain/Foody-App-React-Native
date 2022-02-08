@@ -20,23 +20,32 @@ export default function ProductScreen({ route }) {
     const get = (key, fieldName = 'value') => fieldData[key] ? fieldData[key][fieldName] : undefined
     const [fieldData, setFieldData] = useState({})
     const [categories, setCategories] = useState([])
-    const [selectedCategories, setSelectedCategories] = useState(route.params?.selectedCategories || [])
+    const [selectedCategories, setSelectedCategories] = useState([])
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [snackbarMsg, setSnackbarMsg] = useState(undefined)
 
     useEffect(()=>{
         setFieldData({})
-        setSelectedCategories([])
+        // do not remove selected category list if selected item is already
+        // provivded or else it will clear the category list of updating item
+        if(!(route.params?.selectedItem)){
+            setSelectedCategories([])
+        }else{
+            setSelectedCategories(route.params?.selectedCategories)
+        }
+            
     },[route.params?.selectedItem])
 
     const changeInputText = (key, text) => {
         setFieldData({ ...fieldData, [key]: { 'value': text } })
     }
     const createOrUpdateFood = (updateItemKey) => {
-        if (validateFields(updateItemKey != undefined)) //ignore checking empty fields if updating
+        if (validateFields(updateItemKey != undefined)){ //ignore checking empty fields if updating
             return
+        }
         var parsedData = {}
         for (const key in fieldData) {
+           
             parsedData[key] = fields[key].numberOnly ? parseFloat(fieldData[key].value) : fieldData[key].value
         }
         parsedData.categories = selectedCategories //unwrapping the parameter
@@ -51,9 +60,10 @@ export default function ProductScreen({ route }) {
         const errorFields = {}
         for (const field in fields) {
             if ((get(field) || '') == '') {
-                if (ignoreEmptyFields) {
-                    if (fieldData[field]) //case if user entered a empty string to input discard it as undefined
-                        fieldData[field] = undefined
+                if (ignoreEmptyFields) { // if only user is updating a food item, user can leave other fields empty...
+                    if (fieldData[field]) //the field is not undefined but empty string so undefined it to prevent
+                        //updating food attributes with empty values....
+                        delete fieldData[field]
                     continue
                 }
                 validationFailed = true
@@ -74,8 +84,11 @@ export default function ProductScreen({ route }) {
             setSnackbarMsg('Food should at least belong to single category')
             validationFailed = true
         }
-        if (!validationFailed && parseFloat(get('discount limit')) <= 100) { //if discount field in correct data type but out of range
-            setFieldData({ ...fieldData, 'discount limit': { error: 'Discount must be with range of 100' } })
+        if (!validationFailed && parseFloat(get('discount limit')) > 100) { //if discount field in correct data format 
+            //then check for discount range
+            errorFields['discount limit'] = {
+                'error': 'Discount must be with range of 100'
+            }
             validationFailed = true
         }
         if (validationFailed) {
@@ -105,6 +118,7 @@ export default function ProductScreen({ route }) {
                 key={index}
                 description={field}
                 label={field}
+                keyboardType={fields[field].numberOnly ? "decimal-pad" : "default"}
                 defaultValue={route.params?.selectedItem ? route.params.selectedItem[field] : undefined}
                 returnKeyType={index == (fields.length - 1) ? 'done' : 'next'}
                 onChangeText={(text) => { changeInputText(field, text) }}
@@ -112,7 +126,8 @@ export default function ProductScreen({ route }) {
                 multiline={fields[field].multiline}
                 errorText={get(field, 'error') || ''}
             />)
-         uiFields.splice(2, 0, <><Text style={{ marginBottom: 10 }}>Category</Text><SafeAreaView key="dropDown" style={{ flex: 1 }}>
+          // add the category dropdown in in 3rd position in input fields...  
+         uiFields.splice(2, 0, <View key="categoryDropdown"><Text style={{ marginBottom: 10 }}>Category</Text><SafeAreaView key="dropDown" style={{ flex: 1 }}>
             
             <DropDownPicker
                 listMode="SCROLLVIEW"
@@ -130,7 +145,7 @@ export default function ProductScreen({ route }) {
                 searchable={true}
                 items={parsedCategoryListForDropDown}
             />
-        </SafeAreaView></>)
+        </SafeAreaView></View>)
          
         return uiFields
     }
@@ -139,6 +154,7 @@ export default function ProductScreen({ route }) {
         <ScrollView>
             <Text style={styles.header}>Add Food</Text>
             {generateUIFields()}
+            {/* function will create or update depends if a existed item is provided in route param... */}
             <CustomButton mode="contained" onPress={() => { createOrUpdateFood(route.params?.selectedItem?.key) }} title={route.params?.selectedItem ? 'Update' : 'Create'} />
 
 

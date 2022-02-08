@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         textAlign: 'center',
         alignItems: 'center',
-        fontWeight: 'bold',
+        fontWeight: 'bold'
     },
     contained: {
         backgroundColor: theme.colors.primary,
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 
 export default function CustomButton({ title, mode, onPress, children, buttonStyle, disabled }) {
     const buttonWithComponent = () => <TouchableWithoutFeedback onPress={onPress}>
-        <View style={{ ...styles.common, ...styles[mode] }} >
+        <View style={{ ...styles.common, ...styles[mode],...buttonStyle }} >
             {[<Text key="k" style={{ ...styles[mode + 'Text'], flex: 0 }}>{title}</Text>, children]}
         </View>
     </TouchableWithoutFeedback >

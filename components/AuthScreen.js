@@ -1,6 +1,5 @@
 import React, { useState } from 'react'
 import { TouchableOpacity, StyleSheet, View, Switch, Text } from 'react-native'
-import BackButton from './common/BackButton'
 import Background from './common/Background'
 import Logo from './common/logo'
 import TextInput from './common/TextInput'
@@ -33,8 +32,8 @@ export default function LoginScreen({ navigation }) {
             return
         }
         try {
-            await (await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD)))
-            reference.push({isAdmin : inputFields.isAdmin},()=>{
+            const newUser =  await auth().createUserWithEmailAndPassword(get(EMAIL), get(PASSWORD))
+            reference.child(newUser.user.uid).set({isAdmin : inputFields.isAdmin},()=>{
                 userRoleContext.setIsAdmin(inputFields.isAdmin)
                 navigation.replace('home') 
                 // setSnackbarMessage('successfully created an account')
@@ -99,7 +98,6 @@ export default function LoginScreen({ navigation }) {
                 message = 'Sorry already such user exists'
                 break
             default:
-                console.log(error.code)
                 message = 'Sorry unknown error has occured'
         }
         if (message.length > 0)
@@ -131,12 +129,11 @@ export default function LoginScreen({ navigation }) {
     }
     return (
         <Background>
-            <BackButton goBack={navigation.goBack} />
             <Logo />
             <View style={styles.card}>
                 <Text style={styles.header}>Welcome</Text>
                 <TextInput
-                    label="Email"
+                    description="Email"
                     returnKeyType="next"
                     // value={email.value}
                     onChangeText={(text) => changeInputText(EMAIL, text)}
@@ -148,7 +145,7 @@ export default function LoginScreen({ navigation }) {
                     keyboardType="email-address"
                 />
                 <TextInput
-                    label="Password"
+                    description="Password"
                     returnKeyType={authMode == "login" ? "done" : "next"}
                     // value={password.value}
                     onChangeText={(text) => changeInputText(PASSWORD, text)}
@@ -157,7 +154,7 @@ export default function LoginScreen({ navigation }) {
                     secureTextEntry
                 />
                 {authMode == 'signup' && <><TextInput
-                    label="ConfirmPassword"
+                    description="ConfirmPassword"
                     returnKeyType="done"
                     // value={confirmPassword.value}
                     onChangeText={(text) => changeInputText(CONFIRM_PASSWORD, text)}

@@ -13,12 +13,12 @@ import CartContext from "./contexts/CartContext"
 import BillGenerateScreen from "./BillGenerateScreen"
 import CustomButton from "./common/CustomButton"
 import auth from '@react-native-firebase/auth'
-import { useContext } from "react/cjs/react.development"
+import { useContext, useEffect } from "react/cjs/react.development"
 import UserRoleContext from "./contexts/UserRoleContext"
 const Tab = createBottomTabNavigator();
-const NEVER_CHANGE = 'never_change'
-export default function AdminScreen({ navigation }) {
-  
+export default function HomeScreen({ navigation }) {
+   
+    
     // const [navigationIndex,setNavigationIndex] = useState(0)
     const [cart, setCart] = useState([])
     const [cartErrorCount,setCartErrorCount] = useState(0)
@@ -38,6 +38,7 @@ export default function AdminScreen({ navigation }) {
     }
     const signOutButton = ()=> {
         return <View style={styles.signOutHeaderContainer}>
+            <Text style={styles.userRoleStatus}>{isAdmin ?  "Logged in as Admin" : "Logged as normal User"}</Text>
             <CustomButton mode="contained" title="Logout" onPress={signOut} />
         </View>
     }
@@ -46,7 +47,6 @@ export default function AdminScreen({ navigation }) {
         return <Modal animationType='slide' transparent={true} onRequestClose={() => { setModalTabNavigator(false) }} visible={!!modalTabNavigator} >
             <TouchableOpacity style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', flex: 1, marginBottom: -30 }} onPress={() => { setModalTabNavigator(false) }} />
             {useMemo(()=> {
-                console.log('modal is recreated...')
             return <View style={styles.modal}>
                 <MaterialIcon name='menu-open' size={50} color='grey' style={{ marginTop: -20 }} />
                 <Text style={{ color: 'black', fontSize: 20, fontWeight: 'bold' }}>More Options</Text>
@@ -126,7 +126,18 @@ const styles = StyleSheet.create({
     },
     signOutHeaderContainer : {
         padding : 5,
-        alignItems : 'flex-end'
+        flexDirection : 'row',
+        justifyContent : 'space-between'
+    },
+    userRoleStatus : {
+        borderColor : theme.colors.primary,
+        borderWidth : 2,
+        padding : 5,
+        paddingHorizontal : 10,
+        borderRadius : 7,
+        color : theme.colors.primary,
+        textAlign : 'center',
+        fontWeight : 'bold'
     },
     navigationSubmenuItems: {
         margin: 5,

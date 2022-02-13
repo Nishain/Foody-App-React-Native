@@ -3,29 +3,32 @@ import { StyleSheet, TextInput, View } from "react-native"
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import theme from "./theme"
 export default function CustomSearchBar({ placeholder,onSearch }) {
-    const [searchText,setSearchText] = useState('')
+    const searchTextInput = { ref : undefined }
     const changeSearchText = (txt) => {
         if(txt.length == 0){
-            setSearchText(undefined)
             onSearch(undefined)
         }else
-            setSearchText(txt)
+            onSearch(txt)
+    }
+    const clearSearch = ()=>{   
+        searchTextInput.ref.clear()
+        onSearch(undefined)
     }
     return <View style={styles.searchContainer}>
         <Icon name='search' size={30} color='grey' style={{ flex: 0 }} />
-        <TextInput placeholder={placeholder} style={styles.searchText} onChangeText={changeSearchText} />
-        <Icon name='search' onPress={()=>{ onSearch(searchText) }} size={30} color='white' style={styles.searchButton} />
+        <TextInput ref={(input)=>{ searchTextInput.ref = input }} placeholder={placeholder} style={styles.searchText} onChangeText={changeSearchText} />
+        <Icon name='clear' onPress={clearSearch} size={25} color='white' style={styles.clearButton} />
     </View>
 }
 const styles = StyleSheet.create({
     searchText: {
         fontSize: 20,
-        
         color: 'black',
         flex: 1
     },
-    searchButton : {
-        backgroundColor : theme.colors.primary,
+    clearButton : {
+        backgroundColor : theme.colors.secondary,
+        marginRight : 7,
         borderRadius : 100,
         padding : 5,
         flex : 0

@@ -20,14 +20,14 @@ export default function FoodBrowseScreen({navigation}) {
     const cartContext = useContext(CartContext)
     const isAdmin = useContext(UserRoleContext).isAdmin
     const [snackBarMsg,setSnackbarMsg] = useState(undefined)
-    const addItem = (index,key) => {
+    const addItem = (item,key) => {
   
         const cartItem = cartContext.cart.find(itm => key == itm.key)
         if(cartItem)
             cartItem.quantity = (cartItem.quantity || 0) + 1 //if for the first time then quantity incremented from 0 if 
             //quantity undefined
         else
-            cartContext.cart.push({...data[index],cartQuantity : undefined,quantity : 1})
+            cartContext.cart.push({...item,cartQuantity : undefined,quantity : 1})
         cartContext.setCart([...cartContext.cart])    
     }   
    
@@ -59,8 +59,10 @@ export default function FoodBrowseScreen({navigation}) {
         ],{ cancelable : true })
     }
     const updateItem = (item) => {
+        //extract the details of the updating item....
         const selectedItem = item
         for(const key in selectedItem){
+            //if the field is number convert to string
             if(typeof selectedItem[key] == 'number')
                 selectedItem[key] = selectedItem[key].toString()
         }
@@ -80,7 +82,7 @@ export default function FoodBrowseScreen({navigation}) {
                 <View style={styles.chipContainer}>
                     {item['categories'].map(category=><Text key={category} style={styles.chip}>{category}</Text>)}
                 </View>
-                <CustomButton onPress={()=>{addItem(value.index,item.key)}} title="add To Cart" mode="contained" buttonStyle={{alignSelf :'flex-start'}} >
+                <CustomButton onPress={()=>{addItem(item,item.key)}} title="add To Cart" mode="contained" buttonStyle={{alignSelf :'flex-start'}} >
                     {cartItem && <View style={styles.cartCountCaption}>
                         <Text style={{color : theme.colors.primary}}>{cartItem.quantity}</Text>
                     </View>}

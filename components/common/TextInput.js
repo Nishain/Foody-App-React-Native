@@ -18,8 +18,9 @@ export default function TextInput({ errorText, description, ...props }) {
           mode="outlined"
           {...props}
         /> */}
-        <NativeInput  style={{...styles.input2,...props.inputStyle,borderColor : isFocused ? theme.colors.primary : theme.colors.secondary}} 
         
+        <NativeInput  style={{...styles.input2,...props.inputStyle,borderColor : isFocused ? theme.colors.primary : theme.colors.secondary}} 
+        {...props.innerRef ? { ref : props.innerRef } : null}
         onFocus={()=>setIsFocused(true)}
         onBlur={()=>setIsFocused(false)}
         {...props} />

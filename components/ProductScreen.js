@@ -9,13 +9,15 @@ import CustomSnackBar from './common/CustomSnackBar';
 import CustomButton from './common/CustomButton';
 import { useMemo } from 'react/cjs/react.development';
 
+const fields = {
+    name: {},
+    description: { multiline: true },
+    'discount limit': { validation: /^[0-9]+$/, numberOnly: true },
+    price: { validation: /^[0-9]+$/, numberOnly: true }
+}
+const refs = Object.keys(fields).map(_=> { return { ref : undefined } })
 export default function ProductScreen({ route }) {
-    const fields = {
-        name: {},
-        description: { multiline: true },
-        'discount limit': { validation: /^[0-9]+$/, numberOnly: true },
-        price: { validation: /^[0-9]+$/, numberOnly: true }
-    }
+    
     const reference = database().ref('/')
     const get = (key, fieldName = 'value') => fieldData[key] ? fieldData[key][fieldName] : undefined
     const [fieldData, setFieldData] = useState({})
@@ -23,8 +25,8 @@ export default function ProductScreen({ route }) {
     const [selectedCategories, setSelectedCategories] = useState([])
     const [dropdownOpen, setDropdownOpen] = useState(false)
     const [snackbarMsg, setSnackbarMsg] = useState(undefined)
-
     useEffect(()=>{
+        
         setFieldData({})
         // do not remove selected category list if selected item is already
         // provivded or else it will clear the category list of updating item
@@ -119,7 +121,12 @@ export default function ProductScreen({ route }) {
                 description={field}
                 label={field}
                 keyboardType={fields[field].numberOnly ? "decimal-pad" : "default"}
-                defaultValue={route.params?.selectedItem ? route.params.selectedItem[field] : undefined}
+                innerRef={(input)=>refs[index].ref = input}
+                onSubmitEditing={()=>{
+                if(index < refs.length - 1)  
+                    refs[index + 1].ref.focus()
+                }}
+                defaultValue={ route.params?.selectedItem ? route.params.selectedItem[field] : undefined }
                 returnKeyType={index == (fields.length - 1) ? 'done' : 'next'}
                 onChangeText={(text) => { changeInputText(field, text) }}
                 error={get(field, 'error')}
@@ -156,8 +163,6 @@ export default function ProductScreen({ route }) {
             {generateUIFields()}
             {/* function will create or update depends if a existed item is provided in route param... */}
             <CustomButton mode="contained" onPress={() => { createOrUpdateFood(route.params?.selectedItem?.key) }} title={route.params?.selectedItem ? 'Update' : 'Create'} />
-
-
         </ScrollView>
         <CustomSnackBar message={snackbarMsg} setMessage={setSnackbarMsg} />
     </View>

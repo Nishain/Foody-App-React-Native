@@ -15,8 +15,8 @@ export default function CategoryScreen(){
     const [categoryName,setCategoryName] = useState('')
     const [snackBarMessage,setSnackBarMessage] = useState(null)
     const [searchCriteria,setSearchCriteria] = useState(undefined)
-    const removeElement = (elementIndex)=>{
-        reference.child(data[elementIndex].key).remove(()=>{
+    const removeElement = (key)=>{
+        reference.child(key).remove(()=>{
             setSnackBarMessage('successfully removed category')
         })
         // data.splice(data.indexOf(elementIndex),1)
@@ -26,10 +26,14 @@ export default function CategoryScreen(){
     const renderItem = (itemValue)=>{
         return <View style={styles.itemCell}>
             <Text>{itemValue.item.name}</Text>
-            <Icon size={15} onPress={()=>removeElement(itemValue.index)} name="close"/>
+            <Icon size={15} onPress={()=>removeElement(itemValue.item.key)} name="close"/>
         </View>
     }
     const addCategory = ()=>{
+        if(categoryName.length == 0){
+            setSnackBarMessage('please add a category name')
+            return
+        }
         if(data.findIndex(value=>value.name.toLowerCase() == categoryName.toLowerCase()) > -1){
             setSnackBarMessage('Category name should be unique')
             return
@@ -65,7 +69,7 @@ export default function CategoryScreen(){
 }
 const styles = StyleSheet.create({
     container : {
-        height : '100%'
+        height : '100%',
     },  
     itemCell : {
         elevation : 2,
@@ -87,10 +91,7 @@ const styles = StyleSheet.create({
         flexDirection : 'row',
         alignItems : 'center',
         justifyContent : 'space-between',
-        
-        // alignItems : 'center',
-        marginLeft : 5,
-        marginRight : 5
+        marginHorizontal : 10
     },
     flatList : {
         padding : 5,

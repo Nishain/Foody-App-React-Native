@@ -19,18 +19,21 @@ import defaultLogo from './assets/empty_logo.png'
 import TestObject from "./common/TestObject";
 // import template from './template.html'
 var orderUniqueCode = helper.generateCode(10);
-export default function BillGenerateScreen({ navigation }) {
+
+const fields = [
+    { name: 'Bill Code', disabled: true, value: orderUniqueCode },
+    { name: 'Order Date', disabled: true, value: new Date().toISOString().split('T')[0] },
+    'Customer Name', { name: 'Tax Price', expense: true }, { name: 'Transport Price', expense: true },
+    { name: 'Additional Price', expense: true },
+    'Restrurant Name', { name: 'Note', multiline: true, nonMandatory: true },
+    {name : 'Contact Details', validation : /^[0-9]{10}$/}, { name: 'Address', multiline: true }]
+
+//pending list of references of upcoming input fields....    
+const refs = fields.map(_=> { return { ref : undefined } })
+export default function BillGenerateScreen({ navigation,route }) {
     const reference = database().ref('/history/')
-    //generate a new order order code only if switching screen focus....\
     
     
-    const fields = [
-        { name: 'Bill Code', disabled: true, value: orderUniqueCode },
-        { name: 'Order Date', disabled: true, value: new Date().toISOString().split('T')[0] },
-        'Customer Name', { name: 'Tax Price', expense: true }, { name: 'Transport Price', expense: true },
-        { name: 'Additional Price', expense: true },
-        'Restrurant Name', { name: 'Note', multiline: true, nonMandatory: true },
-        {name : 'Contact Details', validation : /^[0-9]{10}$/}, { name: 'Address', multiline: true }]
     //manadatory to keep companyLogo as the first element in companyDetailsFields array
     const companyDetailsFields = ['companyLogo', 'name', 'address', 'contact']
     const fieldToIncludeOnBillHistory = ['Bill Code', 'Order Date', 'Customer Name'] //total price is automatically added...
@@ -107,8 +110,10 @@ export default function BillGenerateScreen({ navigation }) {
             setSnackbarMsg('there are some conflicts in cart.Please resolve them first')
             return
         }
-        if (validateFields())
+        if (validateFields()){
+            setSnackbarMsg('please check your fields')
             return
+        }
         const primaryData = {}
         for (const fieldProperties of fields) {
             if (typeof fieldProperties == 'string' && fieldToIncludeOnBillHistory.includes(fieldProperties))
@@ -167,6 +172,12 @@ export default function BillGenerateScreen({ navigation }) {
         }
         let file = await RNHTMLtoPDF.convert(pdfGeneratorOptions)
         setSnackbarMsg(`File Created successfully on ${file.filePath}`)
+        //this is a trick to trigger clear input fields....
+        //value of clearText needs to change its value.
+        //clearText simply toggle to 2 kinds of emptyness - undefined and \0
+        // Note "\0" is used instead of "" beacuse "" is ignored by TextField as default value...
+        //then finally self re-direct to same screen
+        navigation.jumpTo('Generate Bill',{clearText : route.params?.clearText == "\0" ? undefined : "\0" })
         reference.push(dataToSubmit, () => {
             //refresh bill code for the next bill....
             orderUniqueCode = helper.generateCode(10);
@@ -176,6 +187,7 @@ export default function BillGenerateScreen({ navigation }) {
             FileViewer.open(file.filePath).catch(err=>{
                 console.log(err)
             })
+            
         })//application/pdf
 
     }
@@ -234,10 +246,17 @@ export default function BillGenerateScreen({ navigation }) {
 
     const generatePrimaryInfoInput = useMemo(()=>fields.map((fieldParam, index) => {
         const field = typeof fieldParam == 'object' ? fieldParam.name : fieldParam
+        
         return <TextInput
             key={index}
             editable={fieldParam.disabled}
+            defaultValue={route.params?.clearText}
             keyboardType={fieldParam.expense ? "numeric" : "default"}
+            innerRef={(input)=>refs[index].ref = input}
+            onSubmitEditing={()=>{
+              if(index < refs.length - 1)  
+                refs[index + 1].ref.focus()
+            }}
             //add value prop if a value is given
             {...fieldParam.value ? { 'value': fieldParam.value } : null}
             description={field}
@@ -267,7 +286,7 @@ export default function BillGenerateScreen({ navigation }) {
         <Text style={{color : 'black' , textAlign:'center'}}>Some Company details are missing</Text>
         <CustomButton title="Edit" mode="outlined" onPress={() => { setIsEditingCompanyDetails(true) }} /></>,[companyDetails])
     const CompanyLogoInput = () => 
-    companyDetails['companyLogo'] ? <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150} style={styles.logoImage} /> :
+    companyDetails['companyLogo'] ? <Image source={{ uri: companyDetails['companyLogo'] }} height={150} width={150} style={styles.logoImageInput} /> :
         <View>
             <Image source={defaultLogo} height={150} width={150} style={styles.logoImageInput} />
             <Text style={{ color: 'red', alignSelf: 'stretch', textAlign: 'center' }}>Missing Image</Text>
@@ -301,12 +320,11 @@ export default function BillGenerateScreen({ navigation }) {
                     {generateCompanyDetails}
                 </View>
             </View>
-
             <CustomButton buttonStyle={{ marginTop: 7 }} title="Generate" onPress={generateBill} mode="contained" />
 
 
-
         </ScrollView>
+        {/* the company modal prompt.... */}
         <Modal visible={isEditingCompanyDetails} transparent={true} >
             <TouchableOpacity style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', flex: 1, marginBottom: -30 }} onPress={() => { setIsEditingCompanyDetails(false) }} />
 

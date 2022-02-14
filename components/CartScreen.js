@@ -27,7 +27,6 @@ export default function CategoryScreen({ navigation }) {
             cartContext.setCartErrorCount(cartContext.cartErrorCount - 1)
         cartContext.cart.splice(removeIndex, 1)
         cartContext.setCart([...cartContext.cart])
-        console.log(`error count ${cartContext.cartErrorCount}`)
     }
     const changeDiscountAmount = (event, item) => {
         const text = event.nativeEvent.text

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"
+import React, { useMemo, useState, useContext } from "react"
 import Icon from "react-native-vector-icons/FontAwesome"
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons'
 import CategoryScreen from "./CategoryScreen"
@@ -13,7 +13,6 @@ import CartContext from "./contexts/CartContext"
 import BillGenerateScreen from "./BillGenerateScreen"
 import CustomButton from "./common/CustomButton"
 import auth from '@react-native-firebase/auth'
-import { useContext, useEffect } from "react/cjs/react.development"
 import UserRoleContext from "./contexts/UserRoleContext"
 const Tab = createBottomTabNavigator();
 export default function HomeScreen({ navigation }) {

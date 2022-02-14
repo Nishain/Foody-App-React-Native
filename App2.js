@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native';
 
 
@@ -8,7 +8,6 @@ import HomeScreen from './components/HomePage';
 import auth from '@react-native-firebase/auth'
 import database from '@react-native-firebase/database'
 import UserRoleContext from './components/contexts/UserRoleContext';
-import { useEffect } from 'react/cjs/react.development';
 const Stack = createNativeStackNavigator()
 export default App = () => {
     const currentUser = auth().currentUser

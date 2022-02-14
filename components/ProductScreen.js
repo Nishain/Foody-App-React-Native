@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import database from '@react-native-firebase/database';
 import { Modal, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import TextInput from './common/TextInput';
@@ -7,7 +7,6 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import theme from './common/theme';
 import CustomSnackBar from './common/CustomSnackBar';
 import CustomButton from './common/CustomButton';
-import { useMemo } from 'react/cjs/react.development';
 
 const fields = {
     name: {},

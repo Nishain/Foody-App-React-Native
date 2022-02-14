@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState,useContext } from 'react'
 import { TouchableOpacity, StyleSheet, View, Switch, Text } from 'react-native'
 import Background from './common/Background'
 import Logo from './common/logo'
@@ -9,7 +9,6 @@ import CustomSnackBar from './common/CustomSnackBar'
 import database from '@react-native-firebase/database'
 import CustomButton from './common/CustomButton'
 import UserRoleContext from './contexts/UserRoleContext'
-import { useContext } from 'react/cjs/react.development'
 
 const EMAIL = 'email', PASSWORD = 'password', CONFIRM_PASSWORD = 'confirmPassword'
 export default function LoginScreen({ navigation }) {

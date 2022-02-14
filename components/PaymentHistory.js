@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { FlatList, Text, View, StyleSheet, TextInput } from "react-native";
 import theme from "./common/theme";
 import database from '@react-native-firebase/database'
@@ -7,7 +7,6 @@ import KeyValueText from "./common/KeyValueText";
 import CustomCard from "./common/CustomCard";
 import DatePicker from 'react-native-date-picker'
 import Icon from 'react-native-vector-icons/FontAwesome'
-import { useMemo } from "react/cjs/react.development";
 export default function PaymentHistory(){
     const reference = database().ref('history')
     const [data,setData] = useState([])

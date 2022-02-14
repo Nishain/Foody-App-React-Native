@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react"
+import React, { useContext, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Alert, FlatList, StyleSheet, Text, View } from "react-native"
 import CustomButton from "./common/CustomButton"
@@ -11,7 +11,6 @@ import CartContext from "./contexts/CartContext"
 import Icon from 'react-native-vector-icons/FontAwesome'
 import CustomSnackBar from "./common/CustomSnackBar"
 import UserRoleContext from "./contexts/UserRoleContext"
-import { useMemo } from "react/cjs/react.development"
 
 export default function FoodBrowseScreen({navigation}) {
     const reference = database().ref('/food/')

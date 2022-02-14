@@ -16,7 +16,8 @@ The project was in built up using react Native CLI. All components are built wit
 ``
  Note this validation happen on input on  lost focus not onTextChange
  ``
-- In order to generate bill the cart should not be empty, user should previously provided all company details *(name,contact details .etc)* user can also edit them anytime and there should be no conflict in the cart - *`No item with greater discount than discount limit for particular item`*
+- In order to generate bill the cart should not be empty, user should previously provided all company details *(name,contact details .etc)* user can also edit them anytime and there should be no conflict in the cart - *`No item with greater discount than discount limit for particular item and disciunt should be numbers`*
+- Discount field automatically lose focus upon typing 2 digit number (upto 99%)
 - Can View history of bills of past purhcase orders.User can filter the history by date
 - Company details are stored in local storage and automatically included if provided in bill recipt the company logo is stored in base64 format
 - For performance improvement cache rendering is used by using ``useMemo()`` hook
@@ -60,6 +61,20 @@ npx link
 `this may be needed step for packages like ` **react-native-html-to-pdf**
 
 to copy relavant assets to platform project folders.If you are using the package ``react-native-vector-icons`` please follow the instructions given in https://github.com/oblador/react-native-vector-icons if need to manually add the icons to Android and IOS project.
+
+## Building release and installing
+
+To build the app in release mode APK (for Android)
+```bash
+cd android
+./gradlew assembleRelease
+```
+and to run released APK execute
+```bash
+npx react-native run-android --variant=release
+```
+or you can follow this [guidline](https://reactnative.dev/docs/signed-apk-android#testing-the-release-build-of-your-app) for more instructions
+
 
 ## Database Structure
 
@@ -116,6 +131,29 @@ the data structure followed on Realtime Firebase database
 ```
 The key used in ``user`` collection is the **UID** stored in FireBase Authentication
 
+## Changing Bill Template
+
+To render bill as PDF HTML template is used as given in `assets/template.js` you can easily convert into HTML file but renaming to `.HTML` by commenting out **export default** and removing enclosing **`** sign.
+
+Here is an example
+
+```html
+<div id="contactDetail">
+    <br/>
+    <br/>
+    <hr id="signatureLine"/>
+    <p>Customer signature</p>
+    {contactDetail}
+    <!-- {contactDetail.single}
+    <img src="{companyLogo}" height=200      width=200 />
+    <h4>{name}</h4>
+    <p>{address}</p>
+    <p><strong>(+94) </strong>{contact}</p>
+    {contactDetail.single}
+    -->
+</div>
+```
+The HTML commented block contains the dynamic template indicated by `{sectionName[single | repeat]}` and then add `{fieldName}` to populate date to relevant field.
 
 # Author
 

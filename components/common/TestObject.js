@@ -3,7 +3,7 @@ import { View,Text } from "react-native"
 
 export default function TestObject(props){
     useEffect(()=>{
-        console.log('hmm...arr is changed')
+        // console.log('hmm...arr is changed')
     },[props.val])
     return <View><Text> Hello</Text></View>
 }

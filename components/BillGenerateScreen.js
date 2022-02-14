@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import { StyleSheet, View, Text, Button, Image, ScrollView, FlatList, Modal, TouchableWithoutFeedback, TouchableOpacity } from "react-native";
 import { launchImageLibrary } from "react-native-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,7 +14,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import database from '@react-native-firebase/database'
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import template from './assets/template'
-import { useMemo } from "react/cjs/react.development";
 import defaultLogo from './assets/empty_logo.png'
 import TestObject from "./common/TestObject";
 // import template from './template.html'
@@ -185,7 +184,7 @@ export default function BillGenerateScreen({ navigation,route }) {
             cartContext.setCart([])
             setFieldValues({})
             FileViewer.open(file.filePath).catch(err=>{
-                console.log(err)
+                // console.log(err)
             })
             
         })//application/pdf

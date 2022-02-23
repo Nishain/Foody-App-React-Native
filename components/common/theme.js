@@ -24,9 +24,22 @@ const theme = {
     fontSize: 20,
     fontWeight: 'bold'
   },
-  darkFont : {
-    color : 'black',
-    fontWeight : 'bold'
+  darkFont: {
+    color: 'black',
+    fontWeight: 'bold'
+  },
+  backdrop: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex: 1,
+    marginBottom: -30
+  },
+  bottomModalContent: {
+    flex: 0,
+    justifyContent: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 10
   }
 }
 export default theme
